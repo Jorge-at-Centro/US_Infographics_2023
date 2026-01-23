@@ -208,12 +208,43 @@ visualizing \#them.
 ctr_plt <- c("#dde8eb", "#bbd1d7", "#8eb2bc", "#637d84", "#39474b")
 
 curr_map = tm_shape(df_CA) +
-             tm_polygons(fill = "pct_prpop",
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_prpop",
                          fill.scale = tm_scale_intervals(style = "jenks",
                                                          values = ctr_plt),
-                         lwd = 0.03,
-                         col="#747474")
+                         fill.legend = tm_legend(title = "Distribution of Puerto\nRicans by County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 0.75,
+                                                 item.width = 1.5,
+                                                 position = tm_pos_in("left","bottom"),
+                                                 frame = FALSE)
+                           ) +
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.3,0.02,0.3))
 print(curr_map)
 ```
 
 ![](Infographics_2023_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
+
+``` r
+tmap_save(curr_map,"test.png")
+```
+
+    ## Map saved to C:\Users\Jorge Soldevila\Documents\Jorge Centro\Projects\PR_in_US_Infographics\Infographics_2023\US_Infographics_2023\test.png
+
+    ## Resolution: 2420.07 by 1822.261 pixels
+
+    ## Size: 8.066901 by 6.074204 inches (300 dpi)
+
+``` r
+tmap_save(curr_map,"test.png")
+```
+
+    ## Map saved to C:\Users\Jorge Soldevila\Documents\Jorge Centro\Projects\PR_in_US_Infographics\Infographics_2023\US_Infographics_2023\test.png
+
+    ## Resolution: 2420.07 by 1822.261 pixels
+
+    ## Size: 8.066901 by 6.074204 inches (300 dpi)
