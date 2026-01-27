@@ -209,16 +209,45 @@ curr_map = tm_shape(df_CA) +
                                                  text.size = 0.8,
                                                  title.size = 1)
                            ) +
-            tm_labels_highlighted("sub_name",
-                      size = 0.65,
+            tm_text("sub_name",
+                      size = 0.55,
                       col = "white",
                       fontface = 2,
-                      bgcol = "black",
                       options = opt_tm_text(remove_overlap = TRUE,
-                                            bg.padding = 0))+
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
             tm_layout(frame = FALSE,
                       inner.margins = c(0.02,0.17,0.02,0.17))
 
+print(curr_map)
+```
+
+```{r}
 tmap_save(curr_map,"test.png")
 ```
 
@@ -229,7 +258,9 @@ tmap_save(curr_map,"test.png")
 
 
 
-
+```{r}
+#options(PACKAGE_MAINFOLDER="C:/Users/Centro Staff/Documents/US_Infographics/US_Infographics_2023")
+```
 
 
 
