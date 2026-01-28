@@ -3,7 +3,7 @@ Infographics_2023
 2026-01-22
 
 \#This project is a step by step process to getting U.S. Census data,
-\#accompanying boundary files, displaying them geographically, and
+\#accompanying boundary files, \#displaying them geographically, and
 \#creating \#visualizations for CENTRO published infographics.
 
 \#We will start by calling the necesarry libraries to perform all
@@ -31,15 +31,15 @@ options(scipen=999)
 produce the \#visualizations.
 
 \#In 2023, there were 15 states for wich Puerto Rican population data
-was \#available based on the 65k threshhold the U.S. Census establishes
-for reporting \#information. These were: California, Connecticut,
-Florida, Georgia, Illinois, \#Massachusetts, Maryland, New Jersey, New
-York, North Carolina, Ohio, \#Pennsylvania, Texas, Virginia, adn
-Wisconsin.
+was \#available based on the 65k \#threshhold the U.S. Census
+establishes for reporting \#information. These were: California,
+\#Connecticut, Florida, Georgia, Illinois, \#Massachusetts, Maryland,
+New Jersey, New York, North \#Carolina, Ohio, \#Pennsylvania, Texas,
+Virginia, adn Wisconsin.
 
 \#We will use the “get_acs” function from the {tydcensus} package to get
-Puerto \#Rican population data for each of the states listed above.
-Additionally we will \#gather information on the Hispanic population
+Puerto \#Rican population \#data for each of the states listed above.
+Additionally we will \#gather information on the Hispanic \#population
 since we will also be visualazing \#this group in a select number of
 states.
 
@@ -74,9 +74,26 @@ assign(df_name, df_current)
 }
 ```
 
+\#In the previous chunk, we obtained data for the PR adn Hispanic
+population for \#selected states. In the code, lines were included to
+clean the names of the \#counties to ease readability when inserting
+labels into future visualizations. \#This works relatively well for all
+states except Connecticut, who switched from \#its 8 historic counties
+to 9 “planning regions”. We need to do some extra steps \#to clean the
+names in this state.
+
+``` r
+#We will use a similar structure to replace the "Planning Region, Connecticut"
+#string in the name within the newly created sub_name variable. 
+df_CT$sub_name <- str_replace(df_CT$NAME, " Planning.*$","")
+
+#Now we will be able to place county equivalent labels to our visualizations
+#for the state of Connecticut. 
+```
+
 \#We are also interested in generating visualizations for the Puerto
-Rican \#population in selected cities across the U.S.. Because we are
-using data at the \#tract level and bounding them to counties that
+Rican \#population in selected \#cities across the U.S.. Because we are
+using data at the \#tract level and bounding them to counties \#that
 constitute the desired cities, \#we will generate the data frames for
 these cities separately.
 
@@ -160,7 +177,7 @@ plot(df_NY["pct_prpop"])
 ```
 
 \#We can now procede to develop a more nuanced structure that produces
-maps that \#are both informative and visually appeasing.
+maps that \#are both \#informative and visually appeasing.
 
 \#But first we should look at the basic structures of our spatial data.
 
@@ -212,12 +229,21 @@ print(st_crs(df_NY)$wkt)
 ```
 
 \#With a basic understanding of our datasets, we will proceed with
-visualizing \#them.
+visualizing \#them. \#We are creating maps of each of the states and
+cities for which we have \#generated information for both the Puerto
+Rican and Hispanic populations.
+
+\#Here we set up the color palett that we will bes using to fill the
+maps.
 
 ``` r
 ctr_plt <- c("#dde8eb", "#bbd1d7", "#8eb2bc", "#637d84", "#39474b")
+```
 
-curr_map = tm_shape(df_CA) +
+\###CALIFORNIA###
+
+``` r
+curr_map <- tm_shape(df_CA) +
              tm_polygons(lwd = 0.4,
                          col="black",
                          fill = "pct_prpop",
@@ -230,28 +256,2140 @@ curr_map = tm_shape(df_CA) +
                                                  title.fontface = 2,
                                                  title.fontfamily = "sans",
                                                  item.shape = "square",
-                                                 item.height = 1.5,
-                                                 item.width = 3,
+                                                 item.height = 1,
+                                                 item.width = 2,
                                                  position = tm_pos_in("left","bottom"),
                                                  frame = FALSE,
                                                  text.size = 0.8,
                                                  title.size = 1)
                            ) +
-            tm_labels_highlighted("sub_name",
-                      size = 0.65,
+            tm_text("sub_name",
+                      size = 0.55,
                       col = "white",
                       fontface = 2,
-                      bgcol = "black",
                       options = opt_tm_text(remove_overlap = TRUE,
-                                            bg.padding = 0))+
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
             tm_layout(frame = FALSE,
                       inner.margins = c(0.02,0.17,0.02,0.17))
 
-tmap_save(curr_map,"test.png")
+tmap_save(curr_map,"CA_pct_prpop.png")
 ```
 
-    ## Map saved to C:\Users\Jorge Soldevila\Documents\Jorge Centro\Projects\PR_in_US_Infographics\Infographics_2023\US_Infographics_2023\test.png
+``` r
+curr_map <- tm_shape(df_CA) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_hispop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Hispanics\nby County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("left","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
 
-    ## Resolution: 2214.728 by 1991.215 pixels
+tmap_save(curr_map,"CA_pct_hispop.png")
+```
 
-    ## Size: 7.382426 by 6.637384 inches (300 dpi)
+\###Connecticut###
+
+``` r
+curr_map <- tm_shape(df_CT) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_prpop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Puerto\nRicans by County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 0.7,
+                                                 item.width = 1.4,
+                                                 position = tm_pos_in("right","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"CT_pct_prpop.png")
+```
+
+``` r
+curr_map <- tm_shape(df_CT) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_hispop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Hispanics\nby County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 1.4,
+                                                 position = tm_pos_in("right","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"CT_pct_hispop.png")
+```
+
+\###FLORIDA###
+
+``` r
+curr_map <- tm_shape(df_FL) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_prpop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Puerto\nRicans by County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("left","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"FL_pct_prpop.png")
+```
+
+``` r
+curr_map <- tm_shape(df_FL) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_hispop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Hispanics\nby County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("left","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"FL_pct_hispop.png")
+```
+
+\###GEORGIA###
+
+``` r
+curr_map <- tm_shape(df_GA) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_prpop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Puerto\nRicans by County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("right","top"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"GA_pct_prpop.png")
+```
+
+``` r
+curr_map <- tm_shape(df_GA) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_hispop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Hispanics\nby County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("right","top"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"GA_pct_hispop.png")
+```
+
+\###ILLINOIS###
+
+``` r
+curr_map <- tm_shape(df_IL) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_prpop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Puerto\nRicans by County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("left","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"IL_pct_prpop.png")
+```
+
+``` r
+curr_map <- tm_shape(df_IL) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_hispop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of \nHispanics by County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("left","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"IL_pct_hispop.png")
+```
+
+\###MASSACHUSETTS###
+
+``` r
+curr_map <- tm_shape(df_MA) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_prpop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Puerto\nRicans by County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("center","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"MA_pct_prpop.png")
+```
+
+``` r
+curr_map <- tm_shape(df_MA) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_hispop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Hispanics\nby County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("center","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"MA_pct_hispop.png")
+```
+
+\###MARYLAND###
+
+``` r
+curr_map <- tm_shape(df_MD) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_prpop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Puerto\nRicans by County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("center","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"MD_pct_prpop.png")
+```
+
+``` r
+curr_map <- tm_shape(df_MD) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_hispop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Hispanics\nby County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("center","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"MD_pct_hispop.png")
+```
+
+\###NORTH CAROLINA###
+
+``` r
+curr_map <- tm_shape(df_NC) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_prpop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Puerto\nRicans by County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("left","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"NC_pct_prpop.png")
+```
+
+``` r
+curr_map <- tm_shape(df_NC) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_hispop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Hispanics\nby County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("left","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"NC_pct_hispop.png")
+```
+
+\###NEW JERSEY###
+
+``` r
+curr_map <- tm_shape(df_NJ) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_prpop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Puerto\nRicans by County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("right","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"NJ_pct_prpop.png")
+```
+
+``` r
+curr_map <- tm_shape(df_NJ) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_hispop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Hispanics\nby County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("right","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"NJ_pct_hispop.png")
+```
+
+\###NEW YORK###
+
+``` r
+curr_map <- tm_shape(df_NY) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_prpop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Puerto\nRicans by County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("left","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"NY_pct_prpop.png")
+```
+
+``` r
+curr_map <- tm_shape(df_NY) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_hispop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Hispanics\nby County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("left","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"NY_pct_hispop.png")
+```
+
+\###NEW YORK CITY###
+
+``` r
+curr_map <- tm_shape(df_nyc) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_prpop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Puerto\nRicans by County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("left","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)) #+
+            # tm_text("sub_name",
+            #           size = 0.55,
+            #           col = "white",
+            #           fontface = 2,
+            #           options = opt_tm_text(remove_overlap = TRUE,
+            #                                 shadow = TRUE,
+            #                                 shadow.offset.x = -0.03,
+            #                                 shadow.offset.y = 0.03))+
+            # tm_text("sub_name",
+            #           size = 0.55,
+            #           col = "white",
+            #           fontface = 2,
+            #           options = opt_tm_text(remove_overlap = TRUE,
+            #                                 shadow = TRUE,
+            #                                 shadow.offset.x = 0.035,
+            #                                 shadow.offset.y = -0.035))+
+            # tm_text("sub_name",
+            #           size = 0.55,
+            #           col = "white",
+            #           fontface = 2,
+            #           options = opt_tm_text(remove_overlap = TRUE,
+            #                                 shadow = TRUE,
+            #                                 shadow.offset.x = -0.035,
+            #                                 shadow.offset.y = -0.035))+
+            # tm_text("sub_name",
+            #           size = 0.55,
+            #           col = "white",
+            #           fontface = 2,
+            #           options = opt_tm_text(remove_overlap = TRUE,
+            #                                 shadow = TRUE,
+            #                                 shadow.offset.x = 0.035,
+            #                                 shadow.offset.y = 0.035))+
+            # tm_layout(frame = FALSE,
+            #           inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"NYC_pct_prpop.png")
+```
+
+``` r
+curr_map <- tm_shape(df_nyc) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_hispop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Hispanics\nby County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("left","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)) #+
+            # tm_text("sub_name",
+            #           size = 0.55,
+            #           col = "white",
+            #           fontface = 2,
+            #           options = opt_tm_text(remove_overlap = TRUE,
+            #                                 shadow = TRUE,
+            #                                 shadow.offset.x = -0.03,
+            #                                 shadow.offset.y = 0.03))+
+            # tm_text("sub_name",
+            #           size = 0.55,
+            #           col = "white",
+            #           fontface = 2,
+            #           options = opt_tm_text(remove_overlap = TRUE,
+            #                                 shadow = TRUE,
+            #                                 shadow.offset.x = 0.035,
+            #                                 shadow.offset.y = -0.035))+
+            # tm_text("sub_name",
+            #           size = 0.55,
+            #           col = "white",
+            #           fontface = 2,
+            #           options = opt_tm_text(remove_overlap = TRUE,
+            #                                 shadow = TRUE,
+            #                                 shadow.offset.x = -0.035,
+            #                                 shadow.offset.y = -0.035))+
+            # tm_text("sub_name",
+            #           size = 0.55,
+            #           col = "white",
+            #           fontface = 2,
+            #           options = opt_tm_text(remove_overlap = TRUE,
+            #                                 shadow = TRUE,
+            #                                 shadow.offset.x = 0.035,
+            #                                 shadow.offset.y = 0.035))+
+            # tm_layout(frame = FALSE,
+            #           inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"NYC_pct_hispop.png")
+```
+
+\###OHIO###
+
+``` r
+curr_map <- tm_shape(df_OH) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_prpop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Puerto\nRicans by County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("right","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"OH_pct_prpop.png")
+```
+
+``` r
+curr_map <- tm_shape(df_OH) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_hispop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Hispanics\nby County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("right","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"OH_pct_hispop.png")
+```
+
+\###PENSYLVANIA###
+
+``` r
+curr_map <- tm_shape(df_PA) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_prpop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Puerto\nRicans by County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("left","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"PA_pct_prpop.png")
+```
+
+``` r
+curr_map <- tm_shape(df_PA) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_hispop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Hispanics\nby County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("left","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"PA_pct_hispop.png")
+```
+
+\###PHILADELPHIA###
+
+``` r
+curr_map <- tm_shape(df_phl) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_prpop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Puerto\nRicans by County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("left","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)) #+
+            # tm_text("sub_name",
+            #           size = 0.55,
+            #           col = "white",
+            #           fontface = 2,
+            #           options = opt_tm_text(remove_overlap = TRUE,
+            #                                 shadow = TRUE,
+            #                                 shadow.offset.x = -0.03,
+            #                                 shadow.offset.y = 0.03))+
+            # tm_text("sub_name",
+            #           size = 0.55,
+            #           col = "white",
+            #           fontface = 2,
+            #           options = opt_tm_text(remove_overlap = TRUE,
+            #                                 shadow = TRUE,
+            #                                 shadow.offset.x = 0.035,
+            #                                 shadow.offset.y = -0.035))+
+            # tm_text("sub_name",
+            #           size = 0.55,
+            #           col = "white",
+            #           fontface = 2,
+            #           options = opt_tm_text(remove_overlap = TRUE,
+            #                                 shadow = TRUE,
+            #                                 shadow.offset.x = -0.035,
+            #                                 shadow.offset.y = -0.035))+
+            # tm_text("sub_name",
+            #           size = 0.55,
+            #           col = "white",
+            #           fontface = 2,
+            #           options = opt_tm_text(remove_overlap = TRUE,
+            #                                 shadow = TRUE,
+            #                                 shadow.offset.x = 0.035,
+            #                                 shadow.offset.y = 0.035))+
+            # tm_layout(frame = FALSE,
+            #           inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"PHL_pct_prpop.png")
+```
+
+``` r
+curr_map <- tm_shape(df_phl) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_hispop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Hispanics\nby County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("left","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)) #+
+            # tm_text("sub_name",
+            #           size = 0.55,
+            #           col = "white",
+            #           fontface = 2,
+            #           options = opt_tm_text(remove_overlap = TRUE,
+            #                                 shadow = TRUE,
+            #                                 shadow.offset.x = -0.03,
+            #                                 shadow.offset.y = 0.03))+
+            # tm_text("sub_name",
+            #           size = 0.55,
+            #           col = "white",
+            #           fontface = 2,
+            #           options = opt_tm_text(remove_overlap = TRUE,
+            #                                 shadow = TRUE,
+            #                                 shadow.offset.x = 0.035,
+            #                                 shadow.offset.y = -0.035))+
+            # tm_text("sub_name",
+            #           size = 0.55,
+            #           col = "white",
+            #           fontface = 2,
+            #           options = opt_tm_text(remove_overlap = TRUE,
+            #                                 shadow = TRUE,
+            #                                 shadow.offset.x = -0.035,
+            #                                 shadow.offset.y = -0.035))+
+            # tm_text("sub_name",
+            #           size = 0.55,
+            #           col = "white",
+            #           fontface = 2,
+            #           options = opt_tm_text(remove_overlap = TRUE,
+            #                                 shadow = TRUE,
+            #                                 shadow.offset.x = 0.035,
+            #                                 shadow.offset.y = 0.035))+
+            # tm_layout(frame = FALSE,
+            #           inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"PHL_pct_hispop.png")
+```
+
+\###TEXAS###
+
+``` r
+curr_map <- tm_shape(df_TX) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_prpop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Puerto\nRicans by County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("left","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"TX_pct_prpop.png")
+```
+
+``` r
+curr_map <- tm_shape(df_TX) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_hispop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Hispanics\nby County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("left","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"TX_pct_hispop.png")
+```
+
+\###VIRGINIA###
+
+``` r
+curr_map <- tm_shape(df_VA) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_prpop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Puerto\nRicans by County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("right","top"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"VA_pct_prpop.png")
+```
+
+``` r
+curr_map <- tm_shape(df_VA) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_hispop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Hispanics\nby County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("right","top"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"VA_pct_hispop.png")
+```
+
+\###WISCONSIN###
+
+``` r
+curr_map <- tm_shape(df_WI) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_prpop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Puerto\nRicans by County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("left","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"WI_pct_prpop.png")
+```
+
+``` r
+curr_map <- tm_shape(df_WI) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_hispop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Hispanics\nby County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("left","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"WI_pct_hispop.png")
+```
+
+``` r
+curr_map <- tm_shape(df_us) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_prpop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Puerto\nRicans by State*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("left","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"usa_pct_prpop.png")
+```
+
+``` r
+curr_map <- tm_shape(df_us) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_hispop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Hispanics\nby State*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("left","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"usa_pct_hispop.png")
+```

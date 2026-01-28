@@ -2,19 +2,19 @@
 title: "Infographics_2023"
 output: "github_document"
 date: "2026-01-22"
+editor_options: 
+  markdown: 
+    wrap: 100
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#This project is a step by step process to getting U.S. Census data,
-#accompanying boundary files, displaying them geographically, and
-#creating #visualizations for CENTRO published infographics.
+#This project is a step by step process to getting U.S. Census data, #accompanying boundary files,
+#displaying them geographically, and #creating #visualizations for CENTRO published infographics.
 
-
-#We will start by calling the necesarry libraries to perform all
-#operations. 
+#We will start by calling the necesarry libraries to perform all #operations.
 
 ```{r Call libraries, warning=FALSE, message=FALSE}
 #We first install the package {pacman} if necessary. This package allows the 
@@ -34,19 +34,16 @@ pacman::p_load(tidyverse,       #Tidyverse for data manipulation.
 options(scipen=999)
 ```
 
-#The first step in our analysis is gathering the data we need to produce the 
-#visualizations.
+#The first step in our analysis is gathering the data we need to produce the #visualizations.
 
-#In 2023, there were 15 states for wich Puerto Rican population data was
-#available based on the 65k threshhold the U.S. Census establishes for reporting
-#information. These were: California, Connecticut, Florida, Georgia, Illinois,
-#Massachusetts, Maryland, New Jersey, New York, North Carolina, Ohio, 
-#Pennsylvania, Texas, Virginia, adn Wisconsin. 
+#In 2023, there were 15 states for wich Puerto Rican population data was #available based on the 65k
+#threshhold the U.S. Census establishes for reporting #information. These were: California,
+#Connecticut, Florida, Georgia, Illinois, #Massachusetts, Maryland, New Jersey, New York, North
+#Carolina, Ohio, #Pennsylvania, Texas, Virginia, adn Wisconsin.
 
-#We will use the "get_acs" function from the {tydcensus} package to get Puerto 
-#Rican population data for each of the states listed above. Additionally we will
-#gather information on the Hispanic population since we will also be visualazing
-#this group in a select number of states. 
+#We will use the "get_acs" function from the {tydcensus} package to get Puerto #Rican population
+#data for each of the states listed above. Additionally we will #gather information on the Hispanic
+#population since we will also be visualazing #this group in a select number of states.
 
 ```{r PR pop by county by state, message=FALSE, warning=FALSE, results='hide'}
 
@@ -81,10 +78,25 @@ assign(df_name, df_current)
 
 ```
 
-#We are also interested in generating visualizations for the Puerto Rican
-#population in selected cities across the U.S.. Because we are using data at the 
-#tract level and bounding them to counties that constitute the desired cities, 
-#we will generate the data frames for these cities separately. 
+#In the previous chunk, we obtained data for the PR adn Hispanic population for
+#selected states. In the code, lines were included to clean the names of the 
+#counties to ease readability when inserting labels into future visualizations.
+#This works relatively well for all states except Connecticut, who switched from 
+#its 8 historic counties to 9 "planning regions". We need to do some extra steps
+#to clean the names in this state. 
+```{r}
+#We will use a similar structure to replace the "Planning Region, Connecticut"
+#string in the name within the newly created sub_name variable. 
+df_CT$sub_name <- str_replace(df_CT$NAME, " Planning.*$","")
+
+#Now we will be able to place county equivalent labels to our visualizations
+#for the state of Connecticut. 
+```
+
+
+#We are also interested in generating visualizations for the Puerto Rican #population in selected
+#cities across the U.S.. Because we are using data at the #tract level and bounding them to counties
+#that constitute the desired cities, #we will generate the data frames for these cities separately.
 
 ```{r PR pop by census tract by selected cities, message=FALSE, warning=FALSE}
 
@@ -147,10 +159,10 @@ df_us <- get_acs(geography = "state",
          sub_name = str_replace(NAME, " County.*$",""))
 ```
 
-#After we have genereted our data, we can proceed with visualizing them 
-#geographically. 
+#After we have genereted our data, we can proceed with visualizing them #geographically.
 
-#We can quickly glance at our data  by using the plot() function. 
+#We can quickly glance at our data by using the plot() function.
+
 ```{r Map at a glance, message=FALSE, warning=FALSE}
 #For example, we can quickly see the distribution of Puerto Rican population in 
 #NY state. 
@@ -161,10 +173,11 @@ plot(df_NY["pct_prpop"])
 #as Buffalo and Rochester.
 ```
 
-#We can now procede to develop a more nuanced structure that produces maps that 
-#are both informative and visually appeasing. 
+#We can now procede to develop a more nuanced structure that produces maps that #are both
+#informative and visually appeasing.
 
-#But first we should look at the basic structures of our spatial data. 
+#But first we should look at the basic structures of our spatial data.
+
 ```{r Spatial structure, warning=FALSE, message=FALSE}
 #Because all our data sets were downloaded in the same manner, we can expect them
 #to have similar structures. Of particular interest to us right now is their 
@@ -183,15 +196,22 @@ print(st_crs(df_NY)$wkt)
 #the name of the current coordinate system. For now we will not make any changes. 
 ```
 
-#With a basic understanding of our datasets, we will proceed with visualizing
-#them. 
 
-```{r}
+#With a basic understanding of our datasets, we will proceed with visualizing 
+#them.
+#We are creating maps of each of the states and cities for which we have
+#generated information for both the Puerto Rican and Hispanic populations. 
+
+
+#Here we set up the color palett that we will bes using to fill the maps.
+```{r Centro Data Hub Color Palett, warning=FALSE, message=FALSE}
 ctr_plt <- c("#dde8eb", "#bbd1d7", "#8eb2bc", "#637d84", "#39474b")
+
 ```
 
 ###CALIFORNIA###
-```{r}
+
+```{r California PR, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_CA) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -250,7 +270,7 @@ curr_map <- tm_shape(df_CA) +
 tmap_save(curr_map,"CA_pct_prpop.png")
 ```
 
-```{r}
+```{r California Hisp, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_CA) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -309,9 +329,9 @@ curr_map <- tm_shape(df_CA) +
 tmap_save(curr_map,"CA_pct_hispop.png")
 ```
 
-
 ###Connecticut###
-```{r}
+
+```{r Connecticut PR, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_CT) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -370,7 +390,7 @@ curr_map <- tm_shape(df_CT) +
 tmap_save(curr_map,"CT_pct_prpop.png")
 ```
 
-```{r}
+```{r Connecticut Hisp, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_CT) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -429,9 +449,9 @@ curr_map <- tm_shape(df_CT) +
 tmap_save(curr_map,"CT_pct_hispop.png")
 ```
 
-
 ###FLORIDA###
-```{r}
+
+```{r Florida PR, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_FL) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -490,7 +510,7 @@ curr_map <- tm_shape(df_FL) +
 tmap_save(curr_map,"FL_pct_prpop.png")
 ```
 
-```{r}
+```{r Florida Hisp, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_FL) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -550,7 +570,8 @@ tmap_save(curr_map,"FL_pct_hispop.png")
 ```
 
 ###GEORGIA###
-```{r}
+
+```{r Georgia PR, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_GA) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -609,7 +630,7 @@ curr_map <- tm_shape(df_GA) +
 tmap_save(curr_map,"GA_pct_prpop.png")
 ```
 
-```{r}
+```{r Georgia Hisp, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_GA) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -669,7 +690,8 @@ tmap_save(curr_map,"GA_pct_hispop.png")
 ```
 
 ###ILLINOIS###
-```{r}
+
+```{r Illinois PR, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_IL) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -728,7 +750,7 @@ curr_map <- tm_shape(df_IL) +
 tmap_save(curr_map,"IL_pct_prpop.png")
 ```
 
-```{r}
+```{r Illinois Hisp, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_IL) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -738,7 +760,7 @@ curr_map <- tm_shape(df_IL) +
                          label.format = tm_label_format(digits = 1, 
                                                         suffix = " %",
                                                         text.separator = "to")),
-                         fill.legend = tm_legend(title = "Distribution of Hispanics\nby County*",
+                         fill.legend = tm_legend(title = "Distribution of \nHispanics by County*",
                                                  title.fontface = 2,
                                                  title.fontfamily = "sans",
                                                  item.shape = "square",
@@ -788,7 +810,8 @@ tmap_save(curr_map,"IL_pct_hispop.png")
 ```
 
 ###MASSACHUSETTS###
-```{r}
+
+```{r Massachusetts PR, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_MA) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -804,7 +827,7 @@ curr_map <- tm_shape(df_MA) +
                                                  item.shape = "square",
                                                  item.height = 1,
                                                  item.width = 2,
-                                                 position = tm_pos_in("left","bottom"),
+                                                 position = tm_pos_in("center","bottom"),
                                                  frame = FALSE,
                                                  text.size = 0.8,
                                                  title.size = 1)
@@ -847,7 +870,7 @@ curr_map <- tm_shape(df_MA) +
 tmap_save(curr_map,"MA_pct_prpop.png")
 ```
 
-```{r}
+```{r Massachusetts Hisp, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_MA) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -863,7 +886,7 @@ curr_map <- tm_shape(df_MA) +
                                                  item.shape = "square",
                                                  item.height = 1,
                                                  item.width = 2,
-                                                 position = tm_pos_in("left","bottom"),
+                                                 position = tm_pos_in("center","bottom"),
                                                  frame = FALSE,
                                                  text.size = 0.8,
                                                  title.size = 1)
@@ -906,9 +929,9 @@ curr_map <- tm_shape(df_MA) +
 tmap_save(curr_map,"MA_pct_hispop.png")
 ```
 
-
 ###MARYLAND###
-```{r}
+
+```{r Maryland PR, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_MD) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -924,7 +947,7 @@ curr_map <- tm_shape(df_MD) +
                                                  item.shape = "square",
                                                  item.height = 1,
                                                  item.width = 2,
-                                                 position = tm_pos_in("left","bottom"),
+                                                 position = tm_pos_in("center","bottom"),
                                                  frame = FALSE,
                                                  text.size = 0.8,
                                                  title.size = 1)
@@ -967,7 +990,7 @@ curr_map <- tm_shape(df_MD) +
 tmap_save(curr_map,"MD_pct_prpop.png")
 ```
 
-```{r}
+```{r Maryland Hisp, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_MD) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -983,7 +1006,7 @@ curr_map <- tm_shape(df_MD) +
                                                  item.shape = "square",
                                                  item.height = 1,
                                                  item.width = 2,
-                                                 position = tm_pos_in("left","bottom"),
+                                                 position = tm_pos_in("center","bottom"),
                                                  frame = FALSE,
                                                  text.size = 0.8,
                                                  title.size = 1)
@@ -1026,9 +1049,9 @@ curr_map <- tm_shape(df_MD) +
 tmap_save(curr_map,"MD_pct_hispop.png")
 ```
 
-
 ###NORTH CAROLINA###
-```{r}
+
+```{r North Carolina PR, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_NC) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -1087,7 +1110,7 @@ curr_map <- tm_shape(df_NC) +
 tmap_save(curr_map,"NC_pct_prpop.png")
 ```
 
-```{r}
+```{r North Carolina Hisp, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_NC) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -1146,9 +1169,9 @@ curr_map <- tm_shape(df_NC) +
 tmap_save(curr_map,"NC_pct_hispop.png")
 ```
 
-
 ###NEW JERSEY###
-```{r}
+
+```{r New Jersey PR, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_NJ) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -1164,7 +1187,7 @@ curr_map <- tm_shape(df_NJ) +
                                                  item.shape = "square",
                                                  item.height = 1,
                                                  item.width = 2,
-                                                 position = tm_pos_in("left","bottom"),
+                                                 position = tm_pos_in("right","bottom"),
                                                  frame = FALSE,
                                                  text.size = 0.8,
                                                  title.size = 1)
@@ -1207,7 +1230,7 @@ curr_map <- tm_shape(df_NJ) +
 tmap_save(curr_map,"NJ_pct_prpop.png")
 ```
 
-```{r}
+```{r New Jersey Hisp, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_NJ) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -1223,7 +1246,7 @@ curr_map <- tm_shape(df_NJ) +
                                                  item.shape = "square",
                                                  item.height = 1,
                                                  item.width = 2,
-                                                 position = tm_pos_in("left","bottom"),
+                                                 position = tm_pos_in("right","bottom"),
                                                  frame = FALSE,
                                                  text.size = 0.8,
                                                  title.size = 1)
@@ -1266,9 +1289,9 @@ curr_map <- tm_shape(df_NJ) +
 tmap_save(curr_map,"NJ_pct_hispop.png")
 ```
 
-
 ###NEW YORK###
-```{r}
+
+```{r New York PR, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_NY) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -1327,7 +1350,7 @@ curr_map <- tm_shape(df_NY) +
 tmap_save(curr_map,"NY_pct_prpop.png")
 ```
 
-```{r}
+```{r New York Hisp, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_NY) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -1387,7 +1410,8 @@ tmap_save(curr_map,"NY_pct_hispop.png")
 ```
 
 ###NEW YORK CITY###
-```{r}
+
+```{r New York City PR, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_nyc) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -1406,47 +1430,46 @@ curr_map <- tm_shape(df_nyc) +
                                                  position = tm_pos_in("left","bottom"),
                                                  frame = FALSE,
                                                  text.size = 0.8,
-                                                 title.size = 1)
-                           ) +
-            tm_text("sub_name",
-                      size = 0.55,
-                      col = "white",
-                      fontface = 2,
-                      options = opt_tm_text(remove_overlap = TRUE,
-                                            shadow = TRUE,
-                                            shadow.offset.x = -0.03,
-                                            shadow.offset.y = 0.03))+
-            tm_text("sub_name",
-                      size = 0.55,
-                      col = "white",
-                      fontface = 2,
-                      options = opt_tm_text(remove_overlap = TRUE,
-                                            shadow = TRUE,
-                                            shadow.offset.x = 0.035,
-                                            shadow.offset.y = -0.035))+
-            tm_text("sub_name",
-                      size = 0.55,
-                      col = "white",
-                      fontface = 2,
-                      options = opt_tm_text(remove_overlap = TRUE,
-                                            shadow = TRUE,
-                                            shadow.offset.x = -0.035,
-                                            shadow.offset.y = -0.035))+
-            tm_text("sub_name",
-                      size = 0.55,
-                      col = "white",
-                      fontface = 2,
-                      options = opt_tm_text(remove_overlap = TRUE,
-                                            shadow = TRUE,
-                                            shadow.offset.x = 0.035,
-                                            shadow.offset.y = 0.035))+
-            tm_layout(frame = FALSE,
-                      inner.margins = c(0.02,0.17,0.02,0.17))
+                                                 title.size = 1)) #+
+            # tm_text("sub_name",
+            #           size = 0.55,
+            #           col = "white",
+            #           fontface = 2,
+            #           options = opt_tm_text(remove_overlap = TRUE,
+            #                                 shadow = TRUE,
+            #                                 shadow.offset.x = -0.03,
+            #                                 shadow.offset.y = 0.03))+
+            # tm_text("sub_name",
+            #           size = 0.55,
+            #           col = "white",
+            #           fontface = 2,
+            #           options = opt_tm_text(remove_overlap = TRUE,
+            #                                 shadow = TRUE,
+            #                                 shadow.offset.x = 0.035,
+            #                                 shadow.offset.y = -0.035))+
+            # tm_text("sub_name",
+            #           size = 0.55,
+            #           col = "white",
+            #           fontface = 2,
+            #           options = opt_tm_text(remove_overlap = TRUE,
+            #                                 shadow = TRUE,
+            #                                 shadow.offset.x = -0.035,
+            #                                 shadow.offset.y = -0.035))+
+            # tm_text("sub_name",
+            #           size = 0.55,
+            #           col = "white",
+            #           fontface = 2,
+            #           options = opt_tm_text(remove_overlap = TRUE,
+            #                                 shadow = TRUE,
+            #                                 shadow.offset.x = 0.035,
+            #                                 shadow.offset.y = 0.035))+
+            # tm_layout(frame = FALSE,
+            #           inner.margins = c(0.02,0.17,0.02,0.17))
 
 tmap_save(curr_map,"NYC_pct_prpop.png")
 ```
 
-```{r}
+```{r New York City Hisp, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_nyc) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -1465,48 +1488,48 @@ curr_map <- tm_shape(df_nyc) +
                                                  position = tm_pos_in("left","bottom"),
                                                  frame = FALSE,
                                                  text.size = 0.8,
-                                                 title.size = 1)
-                           ) +
-            tm_text("sub_name",
-                      size = 0.55,
-                      col = "white",
-                      fontface = 2,
-                      options = opt_tm_text(remove_overlap = TRUE,
-                                            shadow = TRUE,
-                                            shadow.offset.x = -0.03,
-                                            shadow.offset.y = 0.03))+
-            tm_text("sub_name",
-                      size = 0.55,
-                      col = "white",
-                      fontface = 2,
-                      options = opt_tm_text(remove_overlap = TRUE,
-                                            shadow = TRUE,
-                                            shadow.offset.x = 0.035,
-                                            shadow.offset.y = -0.035))+
-            tm_text("sub_name",
-                      size = 0.55,
-                      col = "white",
-                      fontface = 2,
-                      options = opt_tm_text(remove_overlap = TRUE,
-                                            shadow = TRUE,
-                                            shadow.offset.x = -0.035,
-                                            shadow.offset.y = -0.035))+
-            tm_text("sub_name",
-                      size = 0.55,
-                      col = "white",
-                      fontface = 2,
-                      options = opt_tm_text(remove_overlap = TRUE,
-                                            shadow = TRUE,
-                                            shadow.offset.x = 0.035,
-                                            shadow.offset.y = 0.035))+
-            tm_layout(frame = FALSE,
-                      inner.margins = c(0.02,0.17,0.02,0.17))
+                                                 title.size = 1)) #+
+            # tm_text("sub_name",
+            #           size = 0.55,
+            #           col = "white",
+            #           fontface = 2,
+            #           options = opt_tm_text(remove_overlap = TRUE,
+            #                                 shadow = TRUE,
+            #                                 shadow.offset.x = -0.03,
+            #                                 shadow.offset.y = 0.03))+
+            # tm_text("sub_name",
+            #           size = 0.55,
+            #           col = "white",
+            #           fontface = 2,
+            #           options = opt_tm_text(remove_overlap = TRUE,
+            #                                 shadow = TRUE,
+            #                                 shadow.offset.x = 0.035,
+            #                                 shadow.offset.y = -0.035))+
+            # tm_text("sub_name",
+            #           size = 0.55,
+            #           col = "white",
+            #           fontface = 2,
+            #           options = opt_tm_text(remove_overlap = TRUE,
+            #                                 shadow = TRUE,
+            #                                 shadow.offset.x = -0.035,
+            #                                 shadow.offset.y = -0.035))+
+            # tm_text("sub_name",
+            #           size = 0.55,
+            #           col = "white",
+            #           fontface = 2,
+            #           options = opt_tm_text(remove_overlap = TRUE,
+            #                                 shadow = TRUE,
+            #                                 shadow.offset.x = 0.035,
+            #                                 shadow.offset.y = 0.035))+
+            # tm_layout(frame = FALSE,
+            #           inner.margins = c(0.02,0.17,0.02,0.17))
 
 tmap_save(curr_map,"NYC_pct_hispop.png")
 ```
 
 ###OHIO###
-```{r}
+
+```{r Ohio PR, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_OH) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -1565,7 +1588,7 @@ curr_map <- tm_shape(df_OH) +
 tmap_save(curr_map,"OH_pct_prpop.png")
 ```
 
-```{r}
+```{r Ohio Hisp, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_OH) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -1624,9 +1647,9 @@ curr_map <- tm_shape(df_OH) +
 tmap_save(curr_map,"OH_pct_hispop.png")
 ```
 
-
 ###PENSYLVANIA###
-```{r}
+
+```{r Pensylvania PR, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_PA) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -1685,7 +1708,7 @@ curr_map <- tm_shape(df_PA) +
 tmap_save(curr_map,"PA_pct_prpop.png")
 ```
 
-```{r}
+```{r Pensylvania Hisp, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_PA) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -1744,9 +1767,9 @@ curr_map <- tm_shape(df_PA) +
 tmap_save(curr_map,"PA_pct_hispop.png")
 ```
 
-
 ###PHILADELPHIA###
-```{r}
+
+```{r Philadelphia PR, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_phl) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -1765,8 +1788,7 @@ curr_map <- tm_shape(df_phl) +
                                                  position = tm_pos_in("left","bottom"),
                                                  frame = FALSE,
                                                  text.size = 0.8,
-                                                 title.size = 1)
-            #                ) +
+                                                 title.size = 1)) #+
             # tm_text("sub_name",
             #           size = 0.55,
             #           col = "white",
@@ -1805,7 +1827,7 @@ curr_map <- tm_shape(df_phl) +
 tmap_save(curr_map,"PHL_pct_prpop.png")
 ```
 
-```{r}
+```{r Philadelphia Hisp, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_phl) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -1824,8 +1846,7 @@ curr_map <- tm_shape(df_phl) +
                                                  position = tm_pos_in("left","bottom"),
                                                  frame = FALSE,
                                                  text.size = 0.8,
-                                                 title.size = 1)
-            #                ) +
+                                                 title.size = 1)) #+
             # tm_text("sub_name",
             #           size = 0.55,
             #           col = "white",
@@ -1864,9 +1885,9 @@ curr_map <- tm_shape(df_phl) +
 tmap_save(curr_map,"PHL_pct_hispop.png")
 ```
 
-
 ###TEXAS###
-```{r}
+
+```{r Texas PR, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_TX) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -1925,7 +1946,7 @@ curr_map <- tm_shape(df_TX) +
 tmap_save(curr_map,"TX_pct_prpop.png")
 ```
 
-```{r}
+```{r Texas Hisp, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_TX) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -1984,9 +2005,9 @@ curr_map <- tm_shape(df_TX) +
 tmap_save(curr_map,"TX_pct_hispop.png")
 ```
 
-
 ###VIRGINIA###
-```{r}
+
+```{r Virginia PR, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_VA) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -2045,7 +2066,7 @@ curr_map <- tm_shape(df_VA) +
 tmap_save(curr_map,"VA_pct_prpop.png")
 ```
 
-```{r}
+```{r Virginia Hisp, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_VA) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -2104,9 +2125,9 @@ curr_map <- tm_shape(df_VA) +
 tmap_save(curr_map,"VA_pct_hispop.png")
 ```
 
-
 ###WISCONSIN###
-```{r}
+
+```{r Wisconsin PR, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_WI) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -2165,7 +2186,7 @@ curr_map <- tm_shape(df_WI) +
 tmap_save(curr_map,"WI_pct_prpop.png")
 ```
 
-```{r}
+```{r Wisconsin Hisp, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_WI) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -2222,4 +2243,122 @@ curr_map <- tm_shape(df_WI) +
                       inner.margins = c(0.02,0.17,0.02,0.17))
 
 tmap_save(curr_map,"WI_pct_hispop.png")
+```
+
+```{r USA PR, message=FALSE, warning=FALSE}
+curr_map <- tm_shape(df_us) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_prpop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Puerto\nRicans by State*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("left","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"usa_pct_prpop.png")
+```
+
+```{r USA Hisp, message=FALSE, warning=FALSE}
+curr_map <- tm_shape(df_us) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_hispop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Hispanics\nby State*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("left","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17))
+
+tmap_save(curr_map,"usa_pct_hispop.png")
 ```
