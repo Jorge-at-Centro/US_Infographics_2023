@@ -1294,18 +1294,22 @@ tmap_save(curr_map,"NJ_pct_hispop.png")
 ###NEW YORK###
 
 ```{r NYC County Map, message=FALSE,warning=FALSE}
-df_county_nyc <- df_NY %>% 
-  filter(sub_name == "New York" |
-         sub_name == "Queens" |
-         sub_name == "Kings" |
-         sub_name == "Richmond" |
-         sub_name == "Bronx" |
-         sub_name == "Nassau")
+
+ny <- st_read("NY_state.shp")
+ny <- st_transform(ny, st_crs(df_NY))
+df_NY_crop <- st_intersection(df_NY,ny)
+df_NY_crop <- st_make_valid(df_NY_crop)
+
+nyc_inset_bb <- st_bbox(c(xmin = -74.30, ymin = 40.46, xmax = -73.20, ymax = 41.50), 
+                        crs = st_crs(df_NY_crop))
+
+df_county_nyc <- st_crop(df_NY_crop, nyc_inset_bb) 
+nyc_inset_poly <- tmaptools::bb_poly(nyc_inset_bb)
 ```
 
 
 ```{r New York PR, message=FALSE, warning=FALSE}
-curr_map <- tm_shape(df_NY) +
+curr_map <- tm_shape(df_NY_crop) +
              tm_polygons(lwd = 0.4,
                          col="black",
                          fill = "pct_prpop",
@@ -1358,7 +1362,9 @@ curr_map <- tm_shape(df_NY) +
                                             shadow.offset.x = 0.035,
                                             shadow.offset.y = 0.035))+
             tm_layout(frame = FALSE,
-                      inner.margins = c(0.02,0.17,0.02,0.17))
+                      inner.margins = c(0.02,0.17,0.02,0.17)) +
+        tm_shape(nyc_inset_poly) +
+          tm_borders(col = "black")
 
 nyc_cnty_map <- tm_shape(df_county_nyc) +
              tm_polygons(lwd = 0.4,
@@ -1368,62 +1374,65 @@ nyc_cnty_map <- tm_shape(df_county_nyc) +
                                                          values = ctr_plt),
                          fill.legend = tm_legend_hide()) +
             tm_text("sub_name",
-                      size = 0.55,
+                      size = 0.35,
+                      auto.placement = TRUE,
                       col = "white",
                       fontface = 2,
-                      options = opt_tm_text(remove_overlap = TRUE,
+                      options = opt_tm_text(remove_overlap = F,
                                             shadow = TRUE,
                                             shadow.offset.x = -0.03,
                                             shadow.offset.y = 0.03))+
             tm_text("sub_name",
-                      size = 0.55,
+                      size = 0.35,
                       col = "white",
+                      auto.placement = TRUE,
                       fontface = 2,
-                      options = opt_tm_text(remove_overlap = TRUE,
+                      options = opt_tm_text(remove_overlap = F,
                                             shadow = TRUE,
                                             shadow.offset.x = 0.035,
                                             shadow.offset.y = -0.035))+
             tm_text("sub_name",
-                      size = 0.55,
+                      size = 0.35,
+                      auto.placement = TRUE,
                       col = "white",
                       fontface = 2,
-                      options = opt_tm_text(remove_overlap = TRUE,
+                      options = opt_tm_text(remove_overlap = F,
                                             shadow = TRUE,
                                             shadow.offset.x = -0.035,
                                             shadow.offset.y = -0.035))+
             tm_text("sub_name",
-                      size = 0.55,
+                      size = 0.35,
+                      auto.placement = TRUE,
                       col = "white",
                       fontface = 2,
-                      options = opt_tm_text(remove_overlap = TRUE,
+                      options = opt_tm_text(remove_overlap = F,
                                             shadow = TRUE,
                                             shadow.offset.x = 0.035,
                                             shadow.offset.y = 0.035))+
             tm_layout(frame = T,
-                      inner.margins = c(0.02,0.17,0.02,0.17)) 
-curr_map <- curr_map +
-  tm_inset(tmaptools::bb("New York City", ext = 3, relative = T,
-                         xlim = c(0,1),
-                         ylim = c(0.25,1)), 
-           group_id = 1) +
-  tm_components(1, position = (c(0.85,0.7)))
+                      inner.margins = c(0.02,0,0,0))
+# curr_map <- curr_map +
+#   tm_inset(tmaptools::bb(c(-74.30,40.46,-73.20,41.50), relative = T), 
+#            group_id = 1,
+#            width = 9) +
+#   tm_components(1, position = (c(0.78,0.7)))
+# 
+# print(curr_map)
+#   # tm_inset(nyc_cnty_map, 
+#   #          group_id = 1,
+#   #          width = 13,
+#   #          height = 11) +
+#   # tm_components(1, position = c(0.7,0.7))
+# 
+# tmap_save(curr_map, "test.png")
 
-print(curr_map)
-  # tm_inset(nyc_cnty_map, 
-  #          group_id = 1,
-  #          width = 13,
-  #          height = 11) +
-  # tm_components(1, position = c(0.7,0.7))
-
-tmap_save(curr_map, "test.png")
-
-# tmap_save(curr_map,insets_tm = nyc_cnty_map,
-#           insets_vp = viewport(x=.88, y=0.5, width = 0.2, height = 0.3),
-#           "NY_pct_prpop.png")
+tmap_save(curr_map,insets_tm = nyc_cnty_map,
+          insets_vp = viewport(x=.88, y=0.5, width = 0.68, height = 0.38),
+          "NY_pct_prpop.png", dpi = 500)
 ```
 
 ```{r New York Hisp, message=FALSE, warning=FALSE}
-curr_map <- tm_shape(df_NY) +
+curr_map <- tm_shape(df_NY_crop) +
              tm_polygons(lwd = 0.4,
                          col="black",
                          fill = "pct_hispop",
@@ -1432,7 +1441,7 @@ curr_map <- tm_shape(df_NY) +
                          label.format = tm_label_format(digits = 1, 
                                                         suffix = " %",
                                                         text.separator = "to")),
-                         fill.legend = tm_legend(title = "Distribution of Hispanics\nby County*",
+                         fill.legend = tm_legend(title = "Distribution of \nHispanics by County*",
                                                  title.fontface = 2,
                                                  title.fontfamily = "sans",
                                                  item.shape = "square",
@@ -1447,7 +1456,7 @@ curr_map <- tm_shape(df_NY) +
                       size = 0.55,
                       col = "white",
                       fontface = 2,
-                      options = opt_tm_text(remove_overlap = F,
+                      options = opt_tm_text(remove_overlap = TRUE,
                                             shadow = TRUE,
                                             shadow.offset.x = -0.03,
                                             shadow.offset.y = 0.03))+
@@ -1455,7 +1464,7 @@ curr_map <- tm_shape(df_NY) +
                       size = 0.55,
                       col = "white",
                       fontface = 2,
-                      options = opt_tm_text(remove_overlap = F,
+                      options = opt_tm_text(remove_overlap = TRUE,
                                             shadow = TRUE,
                                             shadow.offset.x = 0.035,
                                             shadow.offset.y = -0.035))+
@@ -1463,7 +1472,7 @@ curr_map <- tm_shape(df_NY) +
                       size = 0.55,
                       col = "white",
                       fontface = 2,
-                      options = opt_tm_text(remove_overlap = F,
+                      options = opt_tm_text(remove_overlap = TRUE,
                                             shadow = TRUE,
                                             shadow.offset.x = -0.035,
                                             shadow.offset.y = -0.035))+
@@ -1471,27 +1480,103 @@ curr_map <- tm_shape(df_NY) +
                       size = 0.55,
                       col = "white",
                       fontface = 2,
-                      options = opt_tm_text(remove_overlap = F,
+                      options = opt_tm_text(remove_overlap = TRUE,
                                             shadow = TRUE,
                                             shadow.offset.x = 0.035,
                                             shadow.offset.y = 0.035))+
             tm_layout(frame = FALSE,
-                      inner.margins = c(0.02,0.17,0.02,0.17))
+                      inner.margins = c(0.02,0.17,0.02,0.17)) +
+        tm_shape(nyc_inset_poly) +
+          tm_borders(col = "black")
 
-tmap_save(curr_map,"NY_pct_hispop.png")
+nyc_cnty_map <- tm_shape(df_county_nyc) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_hispop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt),
+                         fill.legend = tm_legend_hide()) +
+            tm_text("sub_name",
+                      size = 0.35,
+                      auto.placement = TRUE,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.35,
+                      col = "white",
+                      auto.placement = TRUE,
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.35,
+                      auto.placement = TRUE,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.35,
+                      auto.placement = TRUE,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = T,
+                      inner.margins = c(0.02,0,0,0))
+# curr_map <- curr_map +
+#   tm_inset(tmaptools::bb(c(-74.30,40.46,-73.20,41.50), relative = T), 
+#            group_id = 1,
+#            width = 9) +
+#   tm_components(1, position = (c(0.78,0.7)))
+# 
+# print(curr_map)
+#   # tm_inset(nyc_cnty_map, 
+#   #          group_id = 1,
+#   #          width = 13,
+#   #          height = 11) +
+#   # tm_components(1, position = c(0.7,0.7))
+# 
+# tmap_save(curr_map, "test.png")
+
+tmap_save(curr_map,insets_tm = nyc_cnty_map,
+          insets_vp = viewport(x=.88, y=0.5, width = 0.68, height = 0.38),
+          "NY_pct_hispop.png", dpi = 500)
 ```
 
 ###NEW YORK CITY###
 
+```{r}
+df_nyc_cnty <- df_NY_crop %>% 
+  filter(sub_name == "New York" |
+           sub_name == "Queens" |
+           sub_name == "Kings" |
+           sub_name == "Bronx" |
+           sub_name == "Richmond")
+
+df_nyc_clp <- st_intersection(df_nyc,df_nyc_cnty)
+#df_nyc_clp <- st_make_valid(df_nyc_clp)
+```
+
 ```{r New York City PR, message=FALSE, warning=FALSE}
 
-curr_map <- tm_shape(df_nyc) +
+curr_map <- tm_shape(df_nyc_clp) +
              tm_polygons(lwd = 0.4,
                          col="black",
                          fill = "pct_prpop",
                          fill.scale = tm_scale_intervals(style = "jenks",
                                                          values = ctr_plt,
-                         label.format = tm_label_format(digits = 1, 
+                         label.format = tm_label_format(digits = 2, 
                                                         suffix = " %",
                                                         text.separator = "to")),
                          fill.legend = tm_legend(title = "Distribution of Puerto\nRicans by County*",
@@ -1500,104 +1585,113 @@ curr_map <- tm_shape(df_nyc) +
                                                  item.shape = "square",
                                                  item.height = 1,
                                                  item.width = 2,
-                                                 position = tm_pos_in("left","bottom"),
+                                                 position = tm_pos_in("left","top"),
                                                  frame = FALSE,
                                                  text.size = 0.8,
-                                                 title.size = 1)) #+
-            # tm_text("sub_name",
-            #           size = 0.55,
-            #           col = "white",
-            #           fontface = 2,
-            #           options = opt_tm_text(remove_overlap = TRUE,
-            #                                 shadow = TRUE,
-            #                                 shadow.offset.x = -0.03,
-            #                                 shadow.offset.y = 0.03))+
-            # tm_text("sub_name",
-            #           size = 0.55,
-            #           col = "white",
-            #           fontface = 2,
-            #           options = opt_tm_text(remove_overlap = TRUE,
-            #                                 shadow = TRUE,
-            #                                 shadow.offset.x = 0.035,
-            #                                 shadow.offset.y = -0.035))+
-            # tm_text("sub_name",
-            #           size = 0.55,
-            #           col = "white",
-            #           fontface = 2,
-            #           options = opt_tm_text(remove_overlap = TRUE,
-            #                                 shadow = TRUE,
-            #                                 shadow.offset.x = -0.035,
-            #                                 shadow.offset.y = -0.035))+
-            # tm_text("sub_name",
-            #           size = 0.55,
-            #           col = "white",
-            #           fontface = 2,
-            #           options = opt_tm_text(remove_overlap = TRUE,
-            #                                 shadow = TRUE,
-            #                                 shadow.offset.x = 0.035,
-            #                                 shadow.offset.y = 0.035))+
-            # tm_layout(frame = FALSE,
-            #           inner.margins = c(0.02,0.17,0.02,0.17))
+                                                 title.size = 1)) +
 
-tmap_save(curr_map,"NYC_pct_prpop.png")
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17)) +
+    tm_shape(df_nyc_cnty) +
+     tm_borders(col = "black")+
+     tm_text("sub_name",
+                      size = 0.75,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.75,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.75,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.75,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))
+  
+
+tmap_save(curr_map,"NYC_pct_prpop.png", dpi = 500)
 ```
 
 ```{r New York City Hisp, message=FALSE, warning=FALSE}
-curr_map <- tm_shape(df_nyc) +
+curr_map <- tm_shape(df_nyc_clp) +
              tm_polygons(lwd = 0.4,
                          col="black",
                          fill = "pct_hispop",
                          fill.scale = tm_scale_intervals(style = "jenks",
                                                          values = ctr_plt,
-                         label.format = tm_label_format(digits = 1, 
+                         label.format = tm_label_format(digits = 2, 
                                                         suffix = " %",
                                                         text.separator = "to")),
-                         fill.legend = tm_legend(title = "Distribution of Hispanics\nby County*",
+                         fill.legend = tm_legend(title = "Distribution of Puerto\nRicans by County*",
                                                  title.fontface = 2,
                                                  title.fontfamily = "sans",
                                                  item.shape = "square",
                                                  item.height = 1,
                                                  item.width = 2,
-                                                 position = tm_pos_in("left","bottom"),
+                                                 position = tm_pos_in("left","top"),
                                                  frame = FALSE,
                                                  text.size = 0.8,
-                                                 title.size = 1)) #+
-            # tm_text("sub_name",
-            #           size = 0.55,
-            #           col = "white",
-            #           fontface = 2,
-            #           options = opt_tm_text(remove_overlap = TRUE,
-            #                                 shadow = TRUE,
-            #                                 shadow.offset.x = -0.03,
-            #                                 shadow.offset.y = 0.03))+
-            # tm_text("sub_name",
-            #           size = 0.55,
-            #           col = "white",
-            #           fontface = 2,
-            #           options = opt_tm_text(remove_overlap = TRUE,
-            #                                 shadow = TRUE,
-            #                                 shadow.offset.x = 0.035,
-            #                                 shadow.offset.y = -0.035))+
-            # tm_text("sub_name",
-            #           size = 0.55,
-            #           col = "white",
-            #           fontface = 2,
-            #           options = opt_tm_text(remove_overlap = TRUE,
-            #                                 shadow = TRUE,
-            #                                 shadow.offset.x = -0.035,
-            #                                 shadow.offset.y = -0.035))+
-            # tm_text("sub_name",
-            #           size = 0.55,
-            #           col = "white",
-            #           fontface = 2,
-            #           options = opt_tm_text(remove_overlap = TRUE,
-            #                                 shadow = TRUE,
-            #                                 shadow.offset.x = 0.035,
-            #                                 shadow.offset.y = 0.035))+
-            # tm_layout(frame = FALSE,
-            #           inner.margins = c(0.02,0.17,0.02,0.17))
+                                                 title.size = 1)) +
 
-tmap_save(curr_map,"NYC_pct_hispop.png")
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17)) +
+    tm_shape(df_nyc_cnty) +
+     tm_borders(col = "black")+
+     tm_text("sub_name",
+                      size = 0.75,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.75,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.75,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.75,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))
+  
+
+
+tmap_save(curr_map,"NYC_pct_hispop.png",dpi = 500)
 ```
 
 ###OHIO###
@@ -2388,7 +2482,7 @@ curr_map <- tm_shape(us_shifted) +
             tm_layout(frame = FALSE,
                       inner.margins = c(0.02,0.17,0.02,0.17))
 
-tmap_save(curr_map,"usa_pct_prpop.png")
+tmap_save(curr_map,"usa_pct_prpop.png", dpi = 500)
 ```
 
 ```{r USA Hisp, message=FALSE, warning=FALSE}
@@ -2447,5 +2541,5 @@ curr_map <- tm_shape(us_shifted) +
             tm_layout(frame = FALSE,
                       inner.margins = c(0.02,0.17,0.02,0.17))
 
-tmap_save(curr_map,"usa_pct_hispop.png")
+tmap_save(curr_map,"usa_pct_hispop.png", dpi = 500)
 ```
