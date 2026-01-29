@@ -238,7 +238,7 @@ curr_map <- tm_shape(df_CA) +
                       size = 0.55,
                       col = "white",
                       fontface = 2,
-                      options = opt_tm_text(remove_overlap = TRUE,
+                      options = opt_tm_text(remove_overlap = T,
                                             shadow = TRUE,
                                             shadow.offset.x = -0.03,
                                             shadow.offset.y = 0.03))+
@@ -246,7 +246,7 @@ curr_map <- tm_shape(df_CA) +
                       size = 0.55,
                       col = "white",
                       fontface = 2,
-                      options = opt_tm_text(remove_overlap = TRUE,
+                      options = opt_tm_text(remove_overlap = T,
                                             shadow = TRUE,
                                             shadow.offset.x = 0.035,
                                             shadow.offset.y = -0.035))+
@@ -254,7 +254,7 @@ curr_map <- tm_shape(df_CA) +
                       size = 0.55,
                       col = "white",
                       fontface = 2,
-                      options = opt_tm_text(remove_overlap = TRUE,
+                      options = opt_tm_text(remove_overlap = T,
                                             shadow = TRUE,
                                             shadow.offset.x = -0.035,
                                             shadow.offset.y = -0.035))+
@@ -262,7 +262,7 @@ curr_map <- tm_shape(df_CA) +
                       size = 0.55,
                       col = "white",
                       fontface = 2,
-                      options = opt_tm_text(remove_overlap = TRUE,
+                      options = opt_tm_text(remove_overlap = T,
                                             shadow = TRUE,
                                             shadow.offset.x = 0.035,
                                             shadow.offset.y = 0.035))+
@@ -1299,8 +1299,8 @@ df_county_nyc <- df_NY %>%
          sub_name == "Queens" |
          sub_name == "Kings" |
          sub_name == "Richmond" |
-         sub_name == "Bronx") |
-         sub_name == "Nassau"
+         sub_name == "Bronx" |
+         sub_name == "Nassau")
 ```
 
 
@@ -1402,11 +1402,18 @@ nyc_cnty_map <- tm_shape(df_county_nyc) +
             tm_layout(frame = T,
                       inner.margins = c(0.02,0.17,0.02,0.17)) 
 curr_map <- curr_map +
-  tm_inset(nyc_cnty_map, 
-           group_id = 1,
-           width = 11,
-           height = 13) +
-  tm_components(1, position = c(0.7,0.7))
+  tm_inset(tmaptools::bb("New York City", ext = 3, relative = T,
+                         xlim = c(0,1),
+                         ylim = c(0.25,1)), 
+           group_id = 1) +
+  tm_components(1, position = (c(0.85,0.7)))
+
+print(curr_map)
+  # tm_inset(nyc_cnty_map, 
+  #          group_id = 1,
+  #          width = 13,
+  #          height = 11) +
+  # tm_components(1, position = c(0.7,0.7))
 
 tmap_save(curr_map, "test.png")
 
