@@ -27,7 +27,9 @@ pacman::p_load(tidyverse,       #Tidyverse for data manipulation.
                sf,              #To handle spatial data.
                tmap,            #To visualize spatial data.
                leaflet,         #in case we wanted to do interactive maps
-               stringr)         #To do some string manipulation.
+               stringr,         #To do some string manipulation.
+               tigris,          #To do some spatial data manipulation.
+               grid)            #To do some visualization
 
 #We are also going to give the program the instruction to avoid using scientific
 #notation when generating calculations.
@@ -1291,6 +1293,17 @@ tmap_save(curr_map,"NJ_pct_hispop.png")
 
 ###NEW YORK###
 
+```{r NYC County Map, message=FALSE,warning=FALSE}
+df_county_nyc <- df_NY %>% 
+  filter(sub_name == "New York" |
+         sub_name == "Queens" |
+         sub_name == "Kings" |
+         sub_name == "Richmond" |
+         sub_name == "Bronx") |
+         sub_name == "Nassau"
+```
+
+
 ```{r New York PR, message=FALSE, warning=FALSE}
 curr_map <- tm_shape(df_NY) +
              tm_polygons(lwd = 0.4,
@@ -1347,30 +1360,13 @@ curr_map <- tm_shape(df_NY) +
             tm_layout(frame = FALSE,
                       inner.margins = c(0.02,0.17,0.02,0.17))
 
-tmap_save(curr_map,"NY_pct_prpop.png")
-```
-
-```{r New York Hisp, message=FALSE, warning=FALSE}
-curr_map <- tm_shape(df_NY) +
+nyc_cnty_map <- tm_shape(df_county_nyc) +
              tm_polygons(lwd = 0.4,
                          col="black",
-                         fill = "pct_hispop",
+                         fill = "pct_prpop",
                          fill.scale = tm_scale_intervals(style = "jenks",
-                                                         values = ctr_plt,
-                         label.format = tm_label_format(digits = 1, 
-                                                        suffix = " %",
-                                                        text.separator = "to")),
-                         fill.legend = tm_legend(title = "Distribution of Hispanics\nby County*",
-                                                 title.fontface = 2,
-                                                 title.fontfamily = "sans",
-                                                 item.shape = "square",
-                                                 item.height = 1,
-                                                 item.width = 2,
-                                                 position = tm_pos_in("left","bottom"),
-                                                 frame = FALSE,
-                                                 text.size = 0.8,
-                                                 title.size = 1)
-                           ) +
+                                                         values = ctr_plt),
+                         fill.legend = tm_legend_hide()) +
             tm_text("sub_name",
                       size = 0.55,
                       col = "white",
@@ -1403,6 +1399,75 @@ curr_map <- tm_shape(df_NY) +
                                             shadow = TRUE,
                                             shadow.offset.x = 0.035,
                                             shadow.offset.y = 0.035))+
+            tm_layout(frame = T,
+                      inner.margins = c(0.02,0.17,0.02,0.17)) 
+curr_map <- curr_map +
+  tm_inset(nyc_cnty_map, 
+           group_id = 1,
+           width = 11,
+           height = 13) +
+  tm_components(1, position = c(0.7,0.7))
+
+tmap_save(curr_map, "test.png")
+
+# tmap_save(curr_map,insets_tm = nyc_cnty_map,
+#           insets_vp = viewport(x=.88, y=0.5, width = 0.2, height = 0.3),
+#           "NY_pct_prpop.png")
+```
+
+```{r New York Hisp, message=FALSE, warning=FALSE}
+curr_map <- tm_shape(df_NY) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_hispop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 1, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Hispanics\nby County*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("left","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1)
+                           ) +
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
             tm_layout(frame = FALSE,
                       inner.margins = c(0.02,0.17,0.02,0.17))
 
@@ -1412,6 +1477,7 @@ tmap_save(curr_map,"NY_pct_hispop.png")
 ###NEW YORK CITY###
 
 ```{r New York City PR, message=FALSE, warning=FALSE}
+
 curr_map <- tm_shape(df_nyc) +
              tm_polygons(lwd = 0.4,
                          col="black",
@@ -2245,8 +2311,22 @@ curr_map <- tm_shape(df_WI) +
 tmap_save(curr_map,"WI_pct_hispop.png")
 ```
 
+###USA###
+
+```{r USA map wrangling, message=FALSE, warning=FALSE}
+#For this exercise, we do not need Puerto Rico in the map. 
+#We will remove it. 
+df_us <- df_us %>% 
+  filter(NAME != "Puerto Rico")
+
+```
+
+
 ```{r USA PR, message=FALSE, warning=FALSE}
-curr_map <- tm_shape(df_us) +
+#We will use the shift_geometry() function from the {tigris} package, which 
+#repositions objects in the map to the "standard" form for inset maps. 
+us_shifted <- shift_geometry(df_us)
+curr_map <- tm_shape(us_shifted) +
              tm_polygons(lwd = 0.4,
                          col="black",
                          fill = "pct_prpop",
@@ -2261,7 +2341,7 @@ curr_map <- tm_shape(df_us) +
                                                  item.shape = "square",
                                                  item.height = 1,
                                                  item.width = 2,
-                                                 position = tm_pos_in("left","bottom"),
+                                                 position = tm_pos_in("left","center"),
                                                  frame = FALSE,
                                                  text.size = 0.8,
                                                  title.size = 1)
@@ -2305,7 +2385,7 @@ tmap_save(curr_map,"usa_pct_prpop.png")
 ```
 
 ```{r USA Hisp, message=FALSE, warning=FALSE}
-curr_map <- tm_shape(df_us) +
+curr_map <- tm_shape(us_shifted) +
              tm_polygons(lwd = 0.4,
                          col="black",
                          fill = "pct_hispop",
@@ -2314,13 +2394,13 @@ curr_map <- tm_shape(df_us) +
                          label.format = tm_label_format(digits = 1, 
                                                         suffix = " %",
                                                         text.separator = "to")),
-                         fill.legend = tm_legend(title = "Distribution of Hispanics\nby State*",
+                         fill.legend = tm_legend(title = "Distribution of \nHispanics by State*",
                                                  title.fontface = 2,
                                                  title.fontfamily = "sans",
                                                  item.shape = "square",
                                                  item.height = 1,
                                                  item.width = 2,
-                                                 position = tm_pos_in("left","bottom"),
+                                                 position = tm_pos_in("left","center"),
                                                  frame = FALSE,
                                                  text.size = 0.8,
                                                  title.size = 1)
