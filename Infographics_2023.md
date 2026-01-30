@@ -20,7 +20,9 @@ pacman::p_load(tidyverse,       #Tidyverse for data manipulation.
                sf,              #To handle spatial data.
                tmap,            #To visualize spatial data.
                leaflet,         #in case we wanted to do interactive maps
-               stringr)         #To do some string manipulation.
+               stringr,         #To do some string manipulation.
+               tigris,          #To do some spatial data manipulation.
+               grid)            #To do some visualization
 
 #We are also going to give the program the instruction to avoid using scientific
 #notation when generating calculations.
@@ -59,7 +61,7 @@ for (abv in st_abv) {
                       pr_pop = "B03001_005E"
                     ),
                     state = abv,
-                    year = 2023,
+                    year = 2024,
                     survey = "acs5",output = "wide",
                     geometry = TRUE,
                     progress_bar = FALSE) %>% 
@@ -106,7 +108,7 @@ df_nyc <- get_acs(geography = "tract",
                     ),
                   state = "NY",
                   county = c("New York","Bronx","Kings","Richmond","Queens"),
-                  year = 2023,
+                  year = 2024,
                   survey = "acs5",
                   output = "wide",
                   geometry = TRUE,
@@ -124,7 +126,7 @@ df_phl <-  get_acs(geography = "tract",
                     ),
                   state = "PA",
                   county = "Philadelphia",
-                  year = 2023,
+                  year = 2024,
                   survey = "acs5",
                   output = "wide",
                   geometry = TRUE,
@@ -146,7 +148,7 @@ df_us <- get_acs(geography = "state",
                       hisp_pop = "B03001_003E",
                       pr_pop = "B03001_005E"
                     ),
-                  year = 2023,
+                  year = 2024,
                   survey = "acs5",
                   output = "wide",
                   geometry = TRUE,
@@ -192,17 +194,23 @@ str(df_NY)
 ```
 
     ## Classes 'sf' and 'data.frame':   62 obs. of  8 variables:
-    ##  $ GEOID     : chr  "36013" "36045" "36059" "36111" ...
-    ##  $ NAME      : chr  "Chautauqua County, New York" "Jefferson County, New York" "Nassau County, New York" "Ulster County, New York" ...
-    ##  $ hisp_pop  : num  11792 8481 256452 21562 2759 ...
-    ##  $ pr_pop    : num  8679 2828 39882 7996 1438 ...
-    ##  $ geometry  :sfc_MULTIPOLYGON of length 62; first list element: List of 1
+    ##  $ GEOID     : chr  "36005" "36119" "36053" "36029" ...
+    ##  $ NAME      : chr  "Bronx County, New York" "Westchester County, New York" "Madison County, New York" "Erie County, New York" ...
+    ##  $ hisp_pop  : num  773828 273730 1776 60918 9412 ...
+    ##  $ pr_pop    : num  229525 52193 451 35635 3621 ...
+    ##  $ geometry  :sfc_MULTIPOLYGON of length 62; first list element: List of 4
     ##   ..$ :List of 1
-    ##   .. ..$ : num [1:257, 1:2] -79.8 -79.8 -79.8 -79.8 -79.7 ...
+    ##   .. ..$ : num [1:19, 1:2] -73.8 -73.8 -73.8 -73.8 -73.8 ...
+    ##   ..$ :List of 1
+    ##   .. ..$ : num [1:7, 1:2] -73.8 -73.8 -73.8 -73.8 -73.8 ...
+    ##   ..$ :List of 1
+    ##   .. ..$ : num [1:25, 1:2] -73.8 -73.8 -73.8 -73.8 -73.8 ...
+    ##   ..$ :List of 1
+    ##   .. ..$ : num [1:202, 1:2] -73.9 -73.9 -73.9 -73.9 -73.9 ...
     ##   ..- attr(*, "class")= chr [1:3] "XY" "MULTIPOLYGON" "sfg"
-    ##  $ pct_prpop : num  0.835 0.272 3.836 0.769 0.138 ...
-    ##  $ pct_hispop: num  0.3025 0.2175 6.578 0.5531 0.0708 ...
-    ##  $ sub_name  : chr  "Chautauqua" "Jefferson" "Nassau" "Ulster" ...
+    ##  $ pct_prpop : num  22.8398 5.1937 0.0449 3.546 0.3603 ...
+    ##  $ pct_hispop: num  19.6598 6.9544 0.0451 1.5477 0.2391 ...
+    ##  $ sub_name  : chr  "Bronx" "Westchester" "Madison" "Erie" ...
     ##  - attr(*, "sf_column")= chr "geometry"
     ##  - attr(*, "agr")= Factor w/ 3 levels "constant","aggregate",..: NA NA NA NA NA NA NA
     ##   ..- attr(*, "names")= chr [1:7] "GEOID" "NAME" "hisp_pop" "pr_pop" ...
@@ -267,7 +275,7 @@ curr_map <- tm_shape(df_CA) +
                       size = 0.55,
                       col = "white",
                       fontface = 2,
-                      options = opt_tm_text(remove_overlap = TRUE,
+                      options = opt_tm_text(remove_overlap = T,
                                             shadow = TRUE,
                                             shadow.offset.x = -0.03,
                                             shadow.offset.y = 0.03))+
@@ -275,7 +283,7 @@ curr_map <- tm_shape(df_CA) +
                       size = 0.55,
                       col = "white",
                       fontface = 2,
-                      options = opt_tm_text(remove_overlap = TRUE,
+                      options = opt_tm_text(remove_overlap = T,
                                             shadow = TRUE,
                                             shadow.offset.x = 0.035,
                                             shadow.offset.y = -0.035))+
@@ -283,7 +291,7 @@ curr_map <- tm_shape(df_CA) +
                       size = 0.55,
                       col = "white",
                       fontface = 2,
-                      options = opt_tm_text(remove_overlap = TRUE,
+                      options = opt_tm_text(remove_overlap = T,
                                             shadow = TRUE,
                                             shadow.offset.x = -0.035,
                                             shadow.offset.y = -0.035))+
@@ -291,7 +299,7 @@ curr_map <- tm_shape(df_CA) +
                       size = 0.55,
                       col = "white",
                       fontface = 2,
-                      options = opt_tm_text(remove_overlap = TRUE,
+                      options = opt_tm_text(remove_overlap = T,
                                             shadow = TRUE,
                                             shadow.offset.x = 0.035,
                                             shadow.offset.y = 0.035))+
@@ -1323,7 +1331,32 @@ tmap_save(curr_map,"NJ_pct_hispop.png")
 \###NEW YORK###
 
 ``` r
-curr_map <- tm_shape(df_NY) +
+ny <- st_read("NY_state.shp")
+```
+
+    ## Reading layer `NY_state' from data source 
+    ##   `C:\Users\Jorge Soldevila\Documents\Jorge Centro\Projects\PR_in_US_Infographics\US_Infographics_2023\NY_state.shp' 
+    ##   using driver `ESRI Shapefile'
+    ## Simple feature collection with 1 feature and 7 fields
+    ## Geometry type: MULTIPOLYGON
+    ## Dimension:     XY
+    ## Bounding box:  xmin: -79.76198 ymin: 40.49605 xmax: -71.85615 ymax: 45.01291
+    ## Geodetic CRS:  WGS 84
+
+``` r
+ny <- st_transform(ny, st_crs(df_NY))
+df_NY_crop <- st_intersection(df_NY,ny)
+df_NY_crop <- st_make_valid(df_NY_crop)
+
+nyc_inset_bb <- st_bbox(c(xmin = -74.30, ymin = 40.46, xmax = -73.20, ymax = 41.50), 
+                        crs = st_crs(df_NY_crop))
+
+df_county_nyc <- st_crop(df_NY_crop, nyc_inset_bb) 
+nyc_inset_poly <- tmaptools::bb_poly(nyc_inset_bb)
+```
+
+``` r
+curr_map <- tm_shape(df_NY_crop) +
              tm_polygons(lwd = 0.4,
                          col="black",
                          fill = "pct_prpop",
@@ -1376,13 +1409,77 @@ curr_map <- tm_shape(df_NY) +
                                             shadow.offset.x = 0.035,
                                             shadow.offset.y = 0.035))+
             tm_layout(frame = FALSE,
-                      inner.margins = c(0.02,0.17,0.02,0.17))
+                      inner.margins = c(0.02,0.17,0.02,0.17)) +
+        tm_shape(nyc_inset_poly) +
+          tm_borders(col = "black")
 
-tmap_save(curr_map,"NY_pct_prpop.png")
+nyc_cnty_map <- tm_shape(df_county_nyc) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_prpop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt),
+                         fill.legend = tm_legend_hide()) +
+            tm_text("sub_name",
+                      size = 0.35,
+                      auto.placement = TRUE,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.35,
+                      col = "white",
+                      auto.placement = TRUE,
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.35,
+                      auto.placement = TRUE,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.35,
+                      auto.placement = TRUE,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = T,
+                      inner.margins = c(0.02,0,0,0))
+# curr_map <- curr_map +
+#   tm_inset(tmaptools::bb(c(-74.30,40.46,-73.20,41.50), relative = T), 
+#            group_id = 1,
+#            width = 9) +
+#   tm_components(1, position = (c(0.78,0.7)))
+# 
+# print(curr_map)
+#   # tm_inset(nyc_cnty_map, 
+#   #          group_id = 1,
+#   #          width = 13,
+#   #          height = 11) +
+#   # tm_components(1, position = c(0.7,0.7))
+# 
+# tmap_save(curr_map, "test.png")
+
+tmap_save(curr_map,insets_tm = nyc_cnty_map,
+          insets_vp = viewport(x=.88, y=0.5, width = 0.68, height = 0.38),
+          "NY_pct_prpop.png", dpi = 500)
 ```
 
 ``` r
-curr_map <- tm_shape(df_NY) +
+curr_map <- tm_shape(df_NY_crop) +
              tm_polygons(lwd = 0.4,
                          col="black",
                          fill = "pct_hispop",
@@ -1391,7 +1488,7 @@ curr_map <- tm_shape(df_NY) +
                          label.format = tm_label_format(digits = 1, 
                                                         suffix = " %",
                                                         text.separator = "to")),
-                         fill.legend = tm_legend(title = "Distribution of Hispanics\nby County*",
+                         fill.legend = tm_legend(title = "Distribution of \nHispanics by County*",
                                                  title.fontface = 2,
                                                  title.fontfamily = "sans",
                                                  item.shape = "square",
@@ -1435,127 +1532,218 @@ curr_map <- tm_shape(df_NY) +
                                             shadow.offset.x = 0.035,
                                             shadow.offset.y = 0.035))+
             tm_layout(frame = FALSE,
-                      inner.margins = c(0.02,0.17,0.02,0.17))
+                      inner.margins = c(0.02,0.17,0.02,0.17)) +
+        tm_shape(nyc_inset_poly) +
+          tm_borders(col = "black")
 
-tmap_save(curr_map,"NY_pct_hispop.png")
+nyc_cnty_map <- tm_shape(df_county_nyc) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_hispop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt),
+                         fill.legend = tm_legend_hide()) +
+            tm_text("sub_name",
+                      size = 0.35,
+                      auto.placement = TRUE,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.35,
+                      col = "white",
+                      auto.placement = TRUE,
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.35,
+                      auto.placement = TRUE,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.35,
+                      auto.placement = TRUE,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+            tm_layout(frame = T,
+                      inner.margins = c(0.02,0,0,0))
+# curr_map <- curr_map +
+#   tm_inset(tmaptools::bb(c(-74.30,40.46,-73.20,41.50), relative = T), 
+#            group_id = 1,
+#            width = 9) +
+#   tm_components(1, position = (c(0.78,0.7)))
+# 
+# print(curr_map)
+#   # tm_inset(nyc_cnty_map, 
+#   #          group_id = 1,
+#   #          width = 13,
+#   #          height = 11) +
+#   # tm_components(1, position = c(0.7,0.7))
+# 
+# tmap_save(curr_map, "test.png")
+
+tmap_save(curr_map,insets_tm = nyc_cnty_map,
+          insets_vp = viewport(x=.88, y=0.5, width = 0.68, height = 0.38),
+          "NY_pct_hispop.png", dpi = 500)
 ```
 
 \###NEW YORK CITY###
 
 ``` r
-curr_map <- tm_shape(df_nyc) +
+df_nyc_cnty <- df_NY_crop %>% 
+  filter(sub_name == "New York" |
+           sub_name == "Queens" |
+           sub_name == "Kings" |
+           sub_name == "Bronx" |
+           sub_name == "Richmond")
+
+df_nyc_clp <- st_intersection(df_nyc,df_nyc_cnty)
+```
+
+    ## Warning: attribute variables are assumed to be spatially constant throughout
+    ## all geometries
+
+``` r
+#df_nyc_clp <- st_make_valid(df_nyc_clp)
+```
+
+``` r
+curr_map <- tm_shape(df_nyc_clp) +
              tm_polygons(lwd = 0.4,
                          col="black",
                          fill = "pct_prpop",
                          fill.scale = tm_scale_intervals(style = "jenks",
                                                          values = ctr_plt,
-                         label.format = tm_label_format(digits = 1, 
+                         label.format = tm_label_format(digits = 2, 
                                                         suffix = " %",
                                                         text.separator = "to")),
-                         fill.legend = tm_legend(title = "Distribution of Puerto\nRicans by County*",
+                         fill.legend = tm_legend(title = "Distribution of Puerto\nRicans in NYC\nby Census Tract*",
                                                  title.fontface = 2,
                                                  title.fontfamily = "sans",
                                                  item.shape = "square",
                                                  item.height = 1,
                                                  item.width = 2,
-                                                 position = tm_pos_in("left","bottom"),
+                                                 position = tm_pos_in("left","top"),
                                                  frame = FALSE,
                                                  text.size = 0.8,
-                                                 title.size = 1)) #+
-            # tm_text("sub_name",
-            #           size = 0.55,
-            #           col = "white",
-            #           fontface = 2,
-            #           options = opt_tm_text(remove_overlap = TRUE,
-            #                                 shadow = TRUE,
-            #                                 shadow.offset.x = -0.03,
-            #                                 shadow.offset.y = 0.03))+
-            # tm_text("sub_name",
-            #           size = 0.55,
-            #           col = "white",
-            #           fontface = 2,
-            #           options = opt_tm_text(remove_overlap = TRUE,
-            #                                 shadow = TRUE,
-            #                                 shadow.offset.x = 0.035,
-            #                                 shadow.offset.y = -0.035))+
-            # tm_text("sub_name",
-            #           size = 0.55,
-            #           col = "white",
-            #           fontface = 2,
-            #           options = opt_tm_text(remove_overlap = TRUE,
-            #                                 shadow = TRUE,
-            #                                 shadow.offset.x = -0.035,
-            #                                 shadow.offset.y = -0.035))+
-            # tm_text("sub_name",
-            #           size = 0.55,
-            #           col = "white",
-            #           fontface = 2,
-            #           options = opt_tm_text(remove_overlap = TRUE,
-            #                                 shadow = TRUE,
-            #                                 shadow.offset.x = 0.035,
-            #                                 shadow.offset.y = 0.035))+
-            # tm_layout(frame = FALSE,
-            #           inner.margins = c(0.02,0.17,0.02,0.17))
+                                                 title.size = 1)) +
 
-tmap_save(curr_map,"NYC_pct_prpop.png")
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17)) +
+    tm_shape(df_nyc_cnty) +
+     tm_borders(col = "black")+
+     tm_text("sub_name",
+                      size = 0.75,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.75,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.75,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.75,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))
+  
+
+tmap_save(curr_map,"NYC_pct_prpop.png", dpi = 500)
 ```
 
 ``` r
-curr_map <- tm_shape(df_nyc) +
+curr_map <- tm_shape(df_nyc_clp) +
              tm_polygons(lwd = 0.4,
                          col="black",
                          fill = "pct_hispop",
                          fill.scale = tm_scale_intervals(style = "jenks",
                                                          values = ctr_plt,
-                         label.format = tm_label_format(digits = 1, 
+                         label.format = tm_label_format(digits = 2, 
                                                         suffix = " %",
                                                         text.separator = "to")),
-                         fill.legend = tm_legend(title = "Distribution of Hispanics\nby County*",
+                         fill.legend = tm_legend(title = "Distribution of \nHispanics in NYC\nby Census Tract**",
                                                  title.fontface = 2,
                                                  title.fontfamily = "sans",
                                                  item.shape = "square",
                                                  item.height = 1,
                                                  item.width = 2,
-                                                 position = tm_pos_in("left","bottom"),
+                                                 position = tm_pos_in("left","top"),
                                                  frame = FALSE,
                                                  text.size = 0.8,
-                                                 title.size = 1)) #+
-            # tm_text("sub_name",
-            #           size = 0.55,
-            #           col = "white",
-            #           fontface = 2,
-            #           options = opt_tm_text(remove_overlap = TRUE,
-            #                                 shadow = TRUE,
-            #                                 shadow.offset.x = -0.03,
-            #                                 shadow.offset.y = 0.03))+
-            # tm_text("sub_name",
-            #           size = 0.55,
-            #           col = "white",
-            #           fontface = 2,
-            #           options = opt_tm_text(remove_overlap = TRUE,
-            #                                 shadow = TRUE,
-            #                                 shadow.offset.x = 0.035,
-            #                                 shadow.offset.y = -0.035))+
-            # tm_text("sub_name",
-            #           size = 0.55,
-            #           col = "white",
-            #           fontface = 2,
-            #           options = opt_tm_text(remove_overlap = TRUE,
-            #                                 shadow = TRUE,
-            #                                 shadow.offset.x = -0.035,
-            #                                 shadow.offset.y = -0.035))+
-            # tm_text("sub_name",
-            #           size = 0.55,
-            #           col = "white",
-            #           fontface = 2,
-            #           options = opt_tm_text(remove_overlap = TRUE,
-            #                                 shadow = TRUE,
-            #                                 shadow.offset.x = 0.035,
-            #                                 shadow.offset.y = 0.035))+
-            # tm_layout(frame = FALSE,
-            #           inner.margins = c(0.02,0.17,0.02,0.17))
+                                                 title.size = 1)) +
 
-tmap_save(curr_map,"NYC_pct_hispop.png")
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17)) +
+    tm_shape(df_nyc_cnty) +
+     tm_borders(col = "black")+
+     tm_text("sub_name",
+                      size = 0.75,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.75,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.75,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.75,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))
+  
+
+
+tmap_save(curr_map,"NYC_pct_hispop.png",dpi = 500)
 ```
 
 \###OHIO###
@@ -2276,8 +2464,21 @@ curr_map <- tm_shape(df_WI) +
 tmap_save(curr_map,"WI_pct_hispop.png")
 ```
 
+\###USA###
+
 ``` r
-curr_map <- tm_shape(df_us) +
+#For this exercise, we do not need Puerto Rico in the map. 
+#We will remove it. 
+df_us <- df_us %>% 
+  filter(NAME != "Puerto Rico")
+```
+
+``` r
+#We will use the shift_geometry() function from the {tigris} package, which 
+#repositions objects in the map to the "standard" form for inset maps. 
+us_shifted <- shift_geometry(df_us)
+us_shifted$sub_name <- ifelse(us_shifted$sub_name == "Rhode Island","",us_shifted$sub_name)
+curr_map <- tm_shape(us_shifted) +
              tm_polygons(lwd = 0.4,
                          col="black",
                          fill = "pct_prpop",
@@ -2292,16 +2493,15 @@ curr_map <- tm_shape(df_us) +
                                                  item.shape = "square",
                                                  item.height = 1,
                                                  item.width = 2,
-                                                 position = tm_pos_in("left","bottom"),
+                                                 position = tm_pos_in("left","center"),
                                                  frame = FALSE,
                                                  text.size = 0.8,
-                                                 title.size = 1)
-                           ) +
+                                                 title.size = 1)) +
             tm_text("sub_name",
                       size = 0.55,
                       col = "white",
                       fontface = 2,
-                      options = opt_tm_text(remove_overlap = TRUE,
+                      options = opt_tm_text(remove_overlap = T,
                                             shadow = TRUE,
                                             shadow.offset.x = -0.03,
                                             shadow.offset.y = 0.03))+
@@ -2309,7 +2509,7 @@ curr_map <- tm_shape(df_us) +
                       size = 0.55,
                       col = "white",
                       fontface = 2,
-                      options = opt_tm_text(remove_overlap = TRUE,
+                      options = opt_tm_text(remove_overlap = T,
                                             shadow = TRUE,
                                             shadow.offset.x = 0.035,
                                             shadow.offset.y = -0.035))+
@@ -2317,7 +2517,7 @@ curr_map <- tm_shape(df_us) +
                       size = 0.55,
                       col = "white",
                       fontface = 2,
-                      options = opt_tm_text(remove_overlap = TRUE,
+                      options = opt_tm_text(remove_overlap = T,
                                             shadow = TRUE,
                                             shadow.offset.x = -0.035,
                                             shadow.offset.y = -0.035))+
@@ -2325,18 +2525,273 @@ curr_map <- tm_shape(df_us) +
                       size = 0.55,
                       col = "white",
                       fontface = 2,
-                      options = opt_tm_text(remove_overlap = TRUE,
+                      options = opt_tm_text(remove_overlap = T,
                                             shadow = TRUE,
                                             shadow.offset.x = 0.035,
                                             shadow.offset.y = 0.035))+
-            tm_layout(frame = FALSE,
-                      inner.margins = c(0.02,0.17,0.02,0.17))
+  tm_shape(us_shifted %>% filter(NAME == "New York")) +
+    tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+    tm_shape(us_shifted %>% filter(NAME == "Pennsylvania")) +
+    tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      ymod = 1.2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            #just = "bottom",
+                                            #ymod = 0.5,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      ymod = 1.2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            #just = "bottom",
+                                            #ymod = 0.5,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      ymod = 1.2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            #just = "bottom",
+                                            #ymod = 0.5,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      ymod = 1.2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            #just = "bottom",
+                                            #ymod = 0.5,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+  tm_shape(us_shifted %>% filter(NAME == "Virginia")) +
+    tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+  tm_shape(us_shifted %>% filter(NAME == "Connecticut")) +
+    tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      xmod = 1.25,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      xmod = 1.25,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      xmod = 1.25,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      xmod = 1.25,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035)) +
+  tm_shape(us_shifted %>% filter(NAME == "Massachusetts")) +
+    tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      xmod = 1.25,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      xmod = 1.25,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      xmod = 1.25,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      xmod = 1.25,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035)) +
+  tm_shape(us_shifted %>% filter(NAME == "Indiana")) +
+    tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      xmod = 1.25,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      xmod = 1.25,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      xmod = 1.25,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      xmod = 1.25,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035)) +
+   tm_shape(us_shifted %>% filter(NAME == "Wisconsin")) +
+    tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035)) +
+   tm_layout(frame = FALSE,
+             inner.margins = c(0.02,0.17,0.02,0.17))
 
-tmap_save(curr_map,"usa_pct_prpop.png")
+tmap_save(curr_map,"usa_pct_prpop.png", dpi = 500)
 ```
 
 ``` r
-curr_map <- tm_shape(df_us) +
+curr_map <- tm_shape(us_shifted) +
              tm_polygons(lwd = 0.4,
                          col="black",
                          fill = "pct_hispop",
@@ -2345,22 +2800,21 @@ curr_map <- tm_shape(df_us) +
                          label.format = tm_label_format(digits = 1, 
                                                         suffix = " %",
                                                         text.separator = "to")),
-                         fill.legend = tm_legend(title = "Distribution of Hispanics\nby State*",
+                         fill.legend = tm_legend(title = "Distribution of \nHispanics by State*",
                                                  title.fontface = 2,
                                                  title.fontfamily = "sans",
                                                  item.shape = "square",
                                                  item.height = 1,
                                                  item.width = 2,
-                                                 position = tm_pos_in("left","bottom"),
+                                                 position = tm_pos_in("left","center"),
                                                  frame = FALSE,
                                                  text.size = 0.8,
-                                                 title.size = 1)
-                           ) +
+                                                 title.size = 1)) +
             tm_text("sub_name",
                       size = 0.55,
                       col = "white",
                       fontface = 2,
-                      options = opt_tm_text(remove_overlap = TRUE,
+                      options = opt_tm_text(remove_overlap = T,
                                             shadow = TRUE,
                                             shadow.offset.x = -0.03,
                                             shadow.offset.y = 0.03))+
@@ -2368,7 +2822,7 @@ curr_map <- tm_shape(df_us) +
                       size = 0.55,
                       col = "white",
                       fontface = 2,
-                      options = opt_tm_text(remove_overlap = TRUE,
+                      options = opt_tm_text(remove_overlap = T,
                                             shadow = TRUE,
                                             shadow.offset.x = 0.035,
                                             shadow.offset.y = -0.035))+
@@ -2376,7 +2830,7 @@ curr_map <- tm_shape(df_us) +
                       size = 0.55,
                       col = "white",
                       fontface = 2,
-                      options = opt_tm_text(remove_overlap = TRUE,
+                      options = opt_tm_text(remove_overlap = T,
                                             shadow = TRUE,
                                             shadow.offset.x = -0.035,
                                             shadow.offset.y = -0.035))+
@@ -2384,12 +2838,267 @@ curr_map <- tm_shape(df_us) +
                       size = 0.55,
                       col = "white",
                       fontface = 2,
-                      options = opt_tm_text(remove_overlap = TRUE,
+                      options = opt_tm_text(remove_overlap = T,
                                             shadow = TRUE,
                                             shadow.offset.x = 0.035,
                                             shadow.offset.y = 0.035))+
-            tm_layout(frame = FALSE,
-                      inner.margins = c(0.02,0.17,0.02,0.17))
+  tm_shape(us_shifted %>% filter(NAME == "New York")) +
+    tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+    tm_shape(us_shifted %>% filter(NAME == "Pennsylvania")) +
+    tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      ymod = 1.2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            #just = "bottom",
+                                            #ymod = 0.5,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      ymod = 1.2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            #just = "bottom",
+                                            #ymod = 0.5,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      ymod = 1.2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            #just = "bottom",
+                                            #ymod = 0.5,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      ymod = 1.2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            #just = "bottom",
+                                            #ymod = 0.5,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+  tm_shape(us_shifted %>% filter(NAME == "Virginia")) +
+    tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+  tm_shape(us_shifted %>% filter(NAME == "Connecticut")) +
+    tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      xmod = 1.25,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      xmod = 1.25,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      xmod = 1.25,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      xmod = 1.25,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035)) +
+  tm_shape(us_shifted %>% filter(NAME == "Massachusetts")) +
+    tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      xmod = 1.25,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      xmod = 1.25,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      xmod = 1.25,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      xmod = 1.25,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035)) +
+  tm_shape(us_shifted %>% filter(NAME == "Indiana")) +
+    tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      xmod = 1.25,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      xmod = 1.25,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      xmod = 1.25,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      xmod = 1.25,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035)) +
+  tm_shape(us_shifted %>% filter(NAME == "Wisconsin")) +
+    tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("sub_name",
+                      size = 0.55,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = F,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))+
+   tm_layout(frame = FALSE,
+             inner.margins = c(0.02,0.17,0.02,0.17))
 
-tmap_save(curr_map,"usa_pct_hispop.png")
+tmap_save(curr_map,"usa_pct_hispop.png", dpi = 500)
 ```
