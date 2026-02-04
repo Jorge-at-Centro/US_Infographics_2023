@@ -81,8 +81,9 @@ population for \#selected states. In the code, lines were included to
 clean the names of the \#counties to ease readability when inserting
 labels into future visualizations. \#This works relatively well for all
 states except Connecticut, who switched from \#its 8 historic counties
-to 9 “planning regions”. We need to do some extra steps \#to clean the
-names in this state.
+to 9 “planning regions”. Virginia and Maryland also contain \#county
+names that are different from the conventional naming. \#We need to do
+some extra steps to clean the names in this state.
 
 ``` r
 #We will use a similar structure to replace the "Planning Region, Connecticut"
@@ -97,7 +98,7 @@ df_MD$sub_name <- str_replace(df_MD$sub_name, "city.*$","")
 ```
 
 \#We are also interested in generating visualizations for the Puerto
-Rican \#population in selected \#cities across the U.S.. Because we are
+Rican population in selected \#cities across the U.S.. Because we are
 using data at the \#tract level and bounding them to counties \#that
 constitute the desired cities, \#we will generate the data frames for
 these cities separately.
@@ -140,6 +141,22 @@ df_phl <-  get_acs(geography = "tract",
          sub_name = str_replace(NAME, " County.*$",""))
 
 #Chicago
+df_chc <- get_acs(geography = "tract",
+                  variables = c(
+                      hisp_pop = "B03001_003E",
+                      pr_pop = "B03001_005E"
+                    ),
+                  state = "IL",
+                  county = c("Cook","DuPage"),
+                  year = 2024,
+                  survey = "acs5",
+                  output = "wide",
+                  geometry = TRUE,
+                  progress_bar = FALSE)%>%
+  select(-ends_with("M")) %>%
+  mutate(pct_prpop = pr_pop/sum(pr_pop)*100,
+         pct_hispop = hisp_pop/sum(hisp_pop)*100,
+         sub_name = str_replace(NAME, " County.*$",""))
 ```
 
 \#Finaly, we will generate similar datasets for the whole U.S. at the
@@ -1070,6 +1087,149 @@ curr_map <- tm_shape(df_IL) +
                       inner.margins = c(0.02,0.17,0.02,0.17))
 
 tmap_save(curr_map,"IL_pct_hispop.png", dpi = 500)
+```
+
+\###CHICAGO###
+
+``` r
+chc_bnd <- get_acs(geography = "place",
+                   variables =  c(
+                      hisp_pop = "B03001_003E",
+                      pr_pop = "B03001_005E"
+                    ),
+                   survey = "acs5",
+                   state = "IL",
+                   year = 2024,
+                   geometry = TRUE,
+                   progress_bar = FALSE) %>%
+  filter(NAME == "Chicago city, Illinois") %>%
+  mutate(NAME = str_replace(NAME, "city.*$",""))
+  
+
+st_crs(chc_bnd) <- st_crs(df_chc)
+df_chc_clp <- st_intersection(df_chc,chc_bnd)
+```
+
+``` r
+curr_map <- tm_shape(df_chc_clp) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_prpop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 2, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Puerto\nRicans in Chicago\nby Census Tract*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("left","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17)) +
+    tm_shape(chc_bnd) +
+     tm_borders(col = "black")+
+     tm_text("NAME",
+                      size = 0.75,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("NAME",
+                      size = 0.75,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("NAME",
+                      size = 0.75,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("NAME",
+                      size = 0.75,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))
+  
+
+tmap_save(curr_map,"CHC_pct_prpop.png", dpi = 500)
+```
+
+``` r
+curr_map <- tm_shape(df_chc_clp) +
+             tm_polygons(lwd = 0.4,
+                         col="black",
+                         fill = "pct_hispop",
+                         fill.scale = tm_scale_intervals(style = "jenks",
+                                                         values = ctr_plt,
+                         label.format = tm_label_format(digits = 2, 
+                                                        suffix = " %",
+                                                        text.separator = "to")),
+                         fill.legend = tm_legend(title = "Distribution of Hispanics \nin Chicago by Census Tract*",
+                                                 title.fontface = 2,
+                                                 title.fontfamily = "sans",
+                                                 item.shape = "square",
+                                                 item.height = 1,
+                                                 item.width = 2,
+                                                 position = tm_pos_in("left","bottom"),
+                                                 frame = FALSE,
+                                                 text.size = 0.8,
+                                                 title.size = 1))+
+            tm_layout(frame = FALSE,
+                      inner.margins = c(0.02,0.17,0.02,0.17)) +
+    tm_shape(chc_bnd) +
+     tm_borders(col = "black")+
+     tm_text("NAME",
+                      size = 0.75,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.03,
+                                            shadow.offset.y = 0.03))+
+            tm_text("NAME",
+                      size = 0.75,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("NAME",
+                      size = 0.75,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = -0.035,
+                                            shadow.offset.y = -0.035))+
+            tm_text("NAME",
+                      size = 0.75,
+                      col = "white",
+                      fontface = 2,
+                      options = opt_tm_text(remove_overlap = TRUE,
+                                            shadow = TRUE,
+                                            shadow.offset.x = 0.035,
+                                            shadow.offset.y = 0.035))
+  
+
+tmap_save(curr_map,"CHC_pct_hispop.png", dpi = 500)
 ```
 
 \###MASSACHUSETTS###
