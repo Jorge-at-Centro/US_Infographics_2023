@@ -29,7 +29,8 @@ pacman::p_load(tidyverse,       #Tidyverse for data manipulation.
                leaflet,         #in case we wanted to do interactive maps
                stringr,         #To do some string manipulation.
                tigris,          #To do some spatial data manipulation.
-               grid)            #To do some visualization
+               grid,            #To do some visualization
+               showtext)        #To set up specific fonts. 
 
 #We are also going to give the program the instruction to avoid using scientific
 #notation when generating calculations.
@@ -228,6 +229,17 @@ ctr_plt <- c("#dde8eb", "#bbd1d7", "#8eb2bc", "#637d84", "#39474b")
 
 ```
 
+#We will also add specific fonts to match CENTRO branding. 
+```{r Font set up, message=FALSE, warning=FALSE}
+
+#CENTRO uses Google's Gothic A1 as its official font. We will call it and
+#add to our environment for display in all display services. 
+font_add_google("Gothic A1", "gothic_a1")
+
+showtext_auto()
+```
+
+
 ###CALIFORNIA###
 
 ```{r California PR, message=FALSE, warning=FALSE}
@@ -242,17 +254,18 @@ curr_map <- tm_shape(df_CA) +
                                                         text.separator = "to")),
                          fill.legend = tm_legend(title = "Distribution of Puerto\nRicans by County*",
                                                  title.fontface = 2,
-                                                 title.fontfamily = "sans",
+                                                 #title.fontfamily = "sans",
                                                  item.shape = "square",
-                                                 item.height = 1,
-                                                 item.width = 2,
+                                                 item.height = 30,
+                                                 item.width = 0.2,
                                                  position = tm_pos_in("left","bottom"),
                                                  frame = FALSE,
-                                                 text.size = 0.8,
-                                                 title.size = 1)
-                           ) +
+                                                 text.size = 4,
+                                                 title.size = 2,
+                                                 width = 2,
+                                                 height = 3)) +
             tm_text("sub_name",
-                      size = 0.55,
+                      size = 3,
                       col = "white",
                       fontface = 2,
                       options = opt_tm_text(remove_overlap = T,
@@ -260,7 +273,7 @@ curr_map <- tm_shape(df_CA) +
                                             shadow.offset.x = -0.03,
                                             shadow.offset.y = 0.03))+
             tm_text("sub_name",
-                      size = 0.55,
+                      size = 3,
                       col = "white",
                       fontface = 2,
                       options = opt_tm_text(remove_overlap = T,
@@ -268,7 +281,7 @@ curr_map <- tm_shape(df_CA) +
                                             shadow.offset.x = 0.035,
                                             shadow.offset.y = -0.035))+
             tm_text("sub_name",
-                      size = 0.55,
+                      size = 3,
                       col = "white",
                       fontface = 2,
                       options = opt_tm_text(remove_overlap = T,
@@ -276,7 +289,7 @@ curr_map <- tm_shape(df_CA) +
                                             shadow.offset.x = -0.035,
                                             shadow.offset.y = -0.035))+
             tm_text("sub_name",
-                      size = 0.55,
+                      size = 3,
                       col = "white",
                       fontface = 2,
                       options = opt_tm_text(remove_overlap = T,
@@ -284,7 +297,8 @@ curr_map <- tm_shape(df_CA) +
                                             shadow.offset.x = 0.035,
                                             shadow.offset.y = 0.035))+
             tm_layout(frame = FALSE,
-                      inner.margins = c(0.02,0.17,0.02,0.17))
+                      inner.margins = c(0.02,0.17,0.02,0.17),
+                      fontfamily = "gotham_a1")
 
 tmap_save(curr_map,"CA_pct_prpop.png", dpi = 500)
 ```
